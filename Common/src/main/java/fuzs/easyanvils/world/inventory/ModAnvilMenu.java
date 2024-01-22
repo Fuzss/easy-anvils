@@ -4,11 +4,11 @@ import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.core.CommonAbstractions;
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.easyanvils.mixin.accessor.AnvilMenuAccessor;
-import fuzs.easyanvils.mixin.accessor.ItemCombinerMenuAccessor;
-import fuzs.easyanvils.mixin.accessor.SlotAccessor;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
+import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
+import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
+import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,12 +46,12 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
     }
 
     private void updateInputSlots(Container inputSlots) {
-        ((ItemCombinerMenuAccessor) this).setInputSlots(inputSlots);
+        this.inputSlots = inputSlots;
         // we could also replace slots directly in the slots list as we have direct access to it,
         // but the Ledger mod hooks into AbstractContainerMenu::addSlot which breaks that mod as we wouldn't be using AbstractContainerMenu::addSlot
         // (they store the menu as a @NotNull value, leads to an NPE)
-        ((SlotAccessor) this.slots.get(0)).setContainer(inputSlots);
-        ((SlotAccessor) this.slots.get(1)).setContainer(inputSlots);
+        this.slots.get(0).container = inputSlots;
+        this.slots.get(1).container = inputSlots;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
 
     @Override
     public MenuType<?> getType() {
-        return ModRegistry.ANVIL_MENU_TYPE.get();
+        return ModRegistry.ANVIL_MENU_TYPE.value();
     }
 
     @Override
@@ -84,17 +84,19 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
     public void createResult() {
         // this is called during <init> when these aren't populated yet
         if (this.builtInAnvilState == null || this.vanillaAnvilState == null) return;
+        // to not break custom anvil recipes from other mods we compare the outcome from the vanilla anvil logic and
+        // the actual current anvil logic (with possible alterations from mods via Mixin or the Forge event)
+        // if the result is not equal we do nothing and let the interfering mod take the upper hand
         ItemStack left = this.inputSlots.getItem(0);
         ItemStack right = this.inputSlots.getItem(1);
-        String itemName = ((AnvilMenuAccessor) this).easyanvils$getItemName();
-        this.builtInAnvilState.init(left, right, itemName);
-        this.vanillaAnvilState.init(left, right, itemName);
+        this.builtInAnvilState.init(left, right, this.itemName);
+        this.vanillaAnvilState.init(left, right, this.itemName);
         this.builtInAnvilState.fillResultSlots();
         this.vanillaAnvilState.fillResultSlots();
         if (!AnvilMenuState.equals(this.builtInAnvilState, this.vanillaAnvilState)) {
             super.createResult();
         } else {
-            this.createResult(left, right, itemName);
+            this.createResult(left, right, this.itemName);
         }
     }
 
@@ -109,7 +111,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
             int baseRepairCost = left.getBaseRepairCost() + (right.isEmpty() ? 0 : right.getBaseRepairCost());
             // no prior work penalty, or fixed
             baseRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.operator.applyAsInt(baseRepairCost);
-            this.setRepairItemCountCost(0);
+            this.repairItemCountCost = 0;
             boolean isBook = false;
 
             int repairOperationCost = 0;
@@ -134,7 +136,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
                         l2 = Math.min(output.getDamageValue(), output.getMaxDamage() / 4);
                     }
 
-                    this.setRepairItemCountCost(repairMaterials);
+                    this.repairItemCountCost = repairMaterials;
                 } else {
                     if (!isBook && (!output.is(right.getItem()) || !output.isDamageableItem())) {
                         this.resultSlots.setItem(0, ItemStack.EMPTY);
@@ -301,10 +303,6 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
         this.setData(0, cost);
     }
 
-    public void setRepairItemCountCost(int repairItemCountCost) {
-        ((AnvilMenuAccessor) this).easyanvils$setRepairItemCountCost(repairItemCountCost);
-    }
-
     @Override
     public void removed(Player player) {
         // copied from container super method
@@ -325,8 +323,8 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
     @Override
     public boolean setItemName(String newName) {
         newName = FormattedStringDecomposer.filterText(newName);
-        if (ComponentDecomposer.getStringLength(newName) <= 50 && !Objects.equals(newName, ((AnvilMenuAccessor) this).easyanvils$getItemName())) {
-            ((AnvilMenuAccessor) this).easyanvils$setItemName(newName);
+        if (ComponentDecomposer.getStringLength(newName) <= 50 && !Objects.equals(newName, this.itemName)) {
+            this.itemName = newName;
             if (this.getSlot(2).hasItem()) {
                 ItemStack itemStack = this.getSlot(2).getItem();
                 setFormattedItemName(newName, itemStack);
@@ -360,7 +358,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
 
     @Override
     public void dataChanged(AbstractContainerMenu containerMenu, int dataSlotIndex, int value) {
-
+        // NO-OP
     }
 
     public static int repairCostToRepairs(int repairCost) {

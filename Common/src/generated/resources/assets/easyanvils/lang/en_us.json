@@ -1,0 +1,5 @@
+{
+  "container.invalidBlock": "Unable to open. Break and replace to use.",
+  "easyanvils.item.name_tag.description": "Use %s + %s to set a new name without an anvil.",
+  "easyanvils.name_tag.edit": "Edit %s"
+}

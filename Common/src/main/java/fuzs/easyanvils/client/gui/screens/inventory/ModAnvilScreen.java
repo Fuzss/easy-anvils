@@ -2,10 +2,8 @@ package fuzs.easyanvils.client.gui.screens.inventory;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easyanvils.EasyAnvils;
-import fuzs.easyanvils.client.gui.components.OpenEditBox;
-import fuzs.easyanvils.client.gui.components.TypeActionManager;
+import fuzs.easyanvils.client.gui.components.FormattableEditBox;
 import fuzs.easyanvils.config.ServerConfig;
-import fuzs.easyanvils.mixin.client.accessor.AnvilScreenAccessor;
 import fuzs.easyanvils.network.client.C2SRenameItemMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import net.minecraft.client.Minecraft;
@@ -22,8 +20,6 @@ import net.minecraft.world.item.ItemStack;
 public class ModAnvilScreen extends AnvilScreen {
     private static final Component TOO_EXPENSIVE_TEXT = Component.translatable("container.repair.expensive");
 
-    private EditBox name;
-
     public ModAnvilScreen(AnvilMenu anvilMenu, Inventory inventory, Component component) {
         super(anvilMenu, inventory, component);
     }
@@ -33,7 +29,7 @@ public class ModAnvilScreen extends AnvilScreen {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         if (EasyAnvils.CONFIG.get(ServerConfig.class).renamingSupportsFormatting) {
-            this.name = new OpenEditBox(this.font, i + 62, j + 24, 103, 12, Component.translatable("container.repair"));
+            this.name = new FormattableEditBox(this.font, i + 62, j + 24, 103, 12, Component.translatable("container.repair"));
         } else {
             this.name = new EditBox(this.font, i + 62, j + 24, 103, 12, Component.translatable("container.repair"));
         }
@@ -48,7 +44,6 @@ public class ModAnvilScreen extends AnvilScreen {
         this.setInitialFocus(this.name);
         this.name.setEditable(false);
         this.name.setVisible(false);
-        ((AnvilScreenAccessor) this).setName(this.name);
     }
 
     @Override
@@ -74,10 +69,8 @@ public class ModAnvilScreen extends AnvilScreen {
 
     @Override
     public void resize(Minecraft minecraft, int width, int height) {
-        TypeActionManager typeActionManager = this.name instanceof OpenEditBox openEditBox ? openEditBox.typeActionManager : null;
         boolean visible = this.name.isVisible();
         super.resize(minecraft, width, height);
-        if (typeActionManager != null) ((OpenEditBox) this.name).typeActionManager = typeActionManager;
         this.name.setVisible(visible);
     }
 

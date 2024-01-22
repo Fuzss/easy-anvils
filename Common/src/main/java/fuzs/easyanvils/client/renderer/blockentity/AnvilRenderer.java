@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.config.ClientConfig;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -18,10 +17,10 @@ import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class AnvilRenderer implements BlockEntityRenderer<BlockEntity> {
-    private final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+    private final ItemRenderer itemRenderer;
 
     public AnvilRenderer(BlockEntityRendererProvider.Context context) {
-
+        this.itemRenderer = context.getItemRenderer();
     }
 
     @Override

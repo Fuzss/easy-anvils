@@ -24,7 +24,7 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
 
     public AnvilBlockEntity(BlockPos blockPos, BlockState blockState) {
-        super(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE.get(), blockPos, blockState);
+        super(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE.value(), blockPos, blockState);
     }
 
     @Override

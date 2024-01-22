@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -24,14 +23,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class ItemInteractionHandler {
 
-    public static EventResultHolder<InteractionResultHolder<ItemStack>> onUseItem(Player player, Level level, InteractionHand hand) {
+    public static EventResultHolder<InteractionResult> onUseItem(Player player, Level level, InteractionHand hand) {
         if (!EasyAnvils.CONFIG.get(ServerConfig.class).editNameTagsNoAnvil) return EventResultHolder.pass();
         ItemStack stack = player.getItemInHand(hand);
         if (player.isShiftKeyDown() && stack.is(Items.NAME_TAG)) {
             if (!level.isClientSide) {
                 EasyAnvils.NETWORK.sendTo(new S2COpenNameTagEditorMessage(hand, stack.getHoverName()), (ServerPlayer) player);
             }
-            return EventResultHolder.interrupt(InteractionResultHolder.sidedSuccess(stack, level.isClientSide));
+            return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));
         }
         return EventResultHolder.pass();
     }

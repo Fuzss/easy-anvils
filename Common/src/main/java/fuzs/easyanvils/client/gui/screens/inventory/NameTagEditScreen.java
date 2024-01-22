@@ -2,7 +2,7 @@ package fuzs.easyanvils.client.gui.screens.inventory;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easyanvils.EasyAnvils;
-import fuzs.easyanvils.client.gui.components.OpenEditBox;
+import fuzs.easyanvils.client.gui.components.FormattableEditBox;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.client.C2SNameTagUpdateMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
@@ -19,7 +19,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class NameTagEditScreen extends Screen {
-    private static final ResourceLocation EDIT_NAME_TAG_LOCATION = new ResourceLocation(EasyAnvils.MOD_ID, "textures/gui/edit_name_tag.png");
+    public static final String KEY_NAME_TAG_EDIT = "easyanvils.name_tag.edit";
+    private static final ResourceLocation EDIT_NAME_TAG_LOCATION = EasyAnvils.id("textures/gui/edit_name_tag.png");
 
     private final int imageWidth = 176;
     private final int imageHeight = 48;
@@ -32,7 +33,7 @@ public class NameTagEditScreen extends Screen {
     private EditBox name;
 
     public NameTagEditScreen(InteractionHand hand, Component title) {
-        super(Component.translatable("easyanvils.name_tag.edit", Items.NAME_TAG.getDescription()));
+        super(Component.translatable(KEY_NAME_TAG_EDIT, Items.NAME_TAG.getDescription()));
         this.hand = hand;
         this.itemName = ComponentDecomposer.toFormattedString(title);
     }
@@ -46,7 +47,7 @@ public class NameTagEditScreen extends Screen {
             this.onClose();
         }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
         if (EasyAnvils.CONFIG.get(ServerConfig.class).renamingSupportsFormatting) {
-            this.name = new OpenEditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
+            this.name = new FormattableEditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
         } else {
             this.name = new EditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
         }
@@ -62,11 +63,6 @@ public class NameTagEditScreen extends Screen {
     }
 
     @Override
-    public void tick() {
-        this.name.tick();
-    }
-
-    @Override
     public void resize(Minecraft minecraft, int width, int height) {
         String s = this.name.getValue();
         this.init(minecraft, width, height);
@@ -75,9 +71,8 @@ public class NameTagEditScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
-        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         guiGraphics.drawString(this.font, this.title, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, 4210752, false);
         this.name.render(guiGraphics, mouseX, mouseY, partialTick);
     }
