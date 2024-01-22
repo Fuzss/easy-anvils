@@ -73,7 +73,6 @@ public class TypeActionManager {
     }
 
     private record TypeState(String value, int displayPos, int cursorPos, int highlightPos) {
-
         public static final TypeState EMPTY = new TypeState("", 0, 0, 0);
 
         private static TypeState from(OpenEditBox editBox) {

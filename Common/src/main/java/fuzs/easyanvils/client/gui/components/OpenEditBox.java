@@ -84,6 +84,8 @@ public class OpenEditBox extends EditBox {
     private long lastClickTime;
     private int lastClickButton;
     private boolean doubleClick;
+    private int doubleClickHighlightPos;
+    private int doubleClickCursorPos;
     public TypeActionManager typeActionManager = new TypeActionManager();
 
     public OpenEditBox(Font font, int i, int j, int k, int l, Component component) {
@@ -197,18 +199,16 @@ public class OpenEditBox extends EditBox {
         if (this.responder != null) {
             this.responder.accept(newText);
         }
-
     }
 
     private void deleteText(int count) {
         if (Screen.hasControlDown()) {
-            this.deleteChars(this.cursorPos);
+            if (count < 0) this.deleteChars(-this.cursorPos);
         } else if (Screen.hasAltDown()) {
             this.deleteWords(count);
         } else {
             this.deleteChars(count);
         }
-
     }
 
     /**
@@ -266,35 +266,40 @@ public class OpenEditBox extends EditBox {
     /**
      * Like getNthWordFromPos (which wraps this), but adds option for skipping consecutive spaces
      */
-    private int getWordPosition(int n, int pos, boolean skipWs) {
+    private int getWordPosition(int numWords, int pos, boolean skipConsecutiveSpaces) {
         int i = pos;
-        boolean backwards = n < 0;
-        int skippedWords = Math.abs(n);
+        boolean backwards = numWords < 0;
+        int skippedWords = Math.abs(numWords);
 
         for (int k = 0; k < skippedWords; ++k) {
             if (!backwards) {
                 int l = this.value.length();
-                while (skipWs && i == pos && i < l && this.value.charAt(i) == ' ') {
+                while (skipConsecutiveSpaces && i == pos && i < l && !isWordChar(this.value.charAt(i))) {
                     ++i;
                     pos++;
                 }
 
-                while (i < l && this.value.charAt(i) != ' ') {
+                while (i < l && isWordChar(this.value.charAt(i))) {
                     ++i;
                 }
             } else {
-                while (skipWs && i == pos && i > 0 && this.value.charAt(i - 1) == ' ') {
+                while (skipConsecutiveSpaces && i == pos && i > 0 && !isWordChar(this.value.charAt(i - 1))) {
                     --i;
                     pos--;
                 }
 
-                while (i > 0 && this.value.charAt(i - 1) != ' ') {
+                while (i > 0 && isWordChar(this.value.charAt(i - 1))) {
                     --i;
                 }
             }
         }
 
         return i;
+    }
+
+    private static boolean isWordChar(char charAt) {
+        // from Owo Lib, thanks!
+        return charAt == '_' || Character.isAlphabetic(charAt) || Character.isDigit(charAt);
     }
 
     /**
@@ -325,7 +330,7 @@ public class OpenEditBox extends EditBox {
     @Override
     public void setCursorPosition(int pos) {
         this.cursorPos = Mth.clamp(pos, 0, this.value.length());
-        this.setDisplayPosition(this.cursorPos);
+        this.scrollTo(this.cursorPos);
     }
 
     /**
@@ -478,76 +483,67 @@ public class OpenEditBox extends EditBox {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!this.isVisible()) {
-            return false;
-        } else {
-            boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
-            if (this.canLoseFocus) {
-                this.setFocused(bl);
-            }
+    public void onClick(double mouseX, double mouseY) {
+        int i = Mth.floor(mouseX) - this.getX();
+        if (this.bordered) {
+            i -= 4;
+        }
 
-            if (this.isFocused() && bl) {
-                if (button == 0) {
+        this.shiftPressed = Screen.hasShiftDown();
+        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos);
+
+        long millis = Util.getMillis();
+        boolean tripleClick = this.doubleClick;
+        this.doubleClick = millis - this.lastClickTime < 250L;
+        if (this.doubleClick) {
+            if (tripleClick) {
+                this.moveCursorToEnd();
+                this.setHighlightPos(0);
+            } else {
+                this.shiftPressed = false;
+                this.doubleClickHighlightPos = this.getWordPosition(1, this.getCursorPosition(), false);
+                this.moveCursorTo(this.doubleClickHighlightPos);
+                this.shiftPressed = true;
+                this.doubleClickCursorPos = this.getWordPosition(-1, this.getCursorPosition(), false);
+                this.moveCursorTo(this.doubleClickCursorPos);
+                this.shiftPressed = Screen.hasShiftDown();
+            }
+        }
+
+        this.lastClickTime = millis;
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.active && this.visible) {
+            if (this.isValidClickButton(button)) {
+                if (this.clicked(mouseX, mouseY)) {
                     int i = Mth.floor(mouseX) - this.getX();
                     if (this.bordered) {
                         i -= 4;
                     }
 
-                    this.shiftPressed = Screen.hasShiftDown();
-                    String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-                    this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos);
-
-                    long millis = Util.getMillis();
-                    boolean tripleClick = this.doubleClick;
-                    this.doubleClick = millis - this.lastClickTime < 250L && this.lastClickButton == button;
-                    tripleClick &= this.doubleClick;
-                    if (tripleClick) {
-                        this.moveCursorToEnd();
-                        this.setHighlightPos(0);
-                    } else if (this.doubleClick) {
+                    if (this.doubleClick) {
+                        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+                        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos;
                         this.shiftPressed = false;
-                        this.moveCursorTo(this.getWordPosition(1, this.getCursorPosition(), false));
+                        this.moveCursorTo(Math.max(this.doubleClickHighlightPos, this.getWordPosition(1, mousePosition, false)));
                         this.shiftPressed = true;
-                        this.moveCursorTo(this.getWordPosition(-1, this.getCursorPosition(), false));
+                        this.moveCursorTo(Math.min(this.doubleClickCursorPos, this.getWordPosition(-1, mousePosition, false)));
+                        this.shiftPressed = Screen.hasShiftDown();
+                    } else {
+                        this.shiftPressed = true;
+                        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+                        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos);
                         this.shiftPressed = Screen.hasShiftDown();
                     }
 
-                    this.lastClickTime = millis;
-                    this.lastClickButton = button;
-
                     return true;
-                } else if (button == 1) {
-                    this.setValue("");
                 }
-                return false;
-            } else {
-                return false;
             }
         }
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (!this.isVisible()) {
-            return false;
-        } else {
-            boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
-            if (this.isFocused() && bl && button == 0) {
-                int i = Mth.floor(mouseX) - this.getX();
-                if (this.bordered) {
-                    i -= 4;
-                }
-
-                this.shiftPressed = true;
-                String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-                this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos);
-                this.shiftPressed = Screen.hasShiftDown();
-                return true;
-            } else {
-                return false;
-            }
-        }
+        return false;
     }
 
     @Override
@@ -596,7 +592,7 @@ public class OpenEditBox extends EditBox {
 
             if (bl2 && k == j) {
                 if (!string.isEmpty()) {
-                    guiGraphics.fill(o, m - 1, o + 1, m + 1 + 9, -3092272);
+                    guiGraphics.fill(RenderType.guiOverlay(), o, m - 1, o + 1, m + 1 + 9, -3092272);
                 } else {
                     guiGraphics.drawString(this.font, "_", o, m, i);
                 }
@@ -742,9 +738,10 @@ public class OpenEditBox extends EditBox {
     @Override
     public void setHighlightPos(int position) {
         this.highlightPos = Mth.clamp(position, 0, this.value.length());
+        this.scrollTo(this.highlightPos);
     }
 
-    public void setDisplayPosition(int position) {
+    protected void scrollTo(int position) {
         if (this.font != null) {
             int i = this.value.length();
             if (this.displayPos > i) {
