@@ -137,6 +137,7 @@ public class AdvancedEditBox extends EditBox {
                 this.setHighlightPos(0);
             } else {
                 // double click to select the clicked word
+                // highlight positions is right selection boundary, cursor position is left selection boundary
                 this.doubleClickHighlightPos = this.getWordPosition(1, this.getCursorPosition(), false);
                 this.moveCursorTo(this.doubleClickHighlightPos, false);
                 this.doubleClickCursorPos = this.getWordPosition(-1, this.getCursorPosition(), false);
@@ -148,30 +149,45 @@ public class AdvancedEditBox extends EditBox {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.active && this.visible) {
-            if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
-                int i = Mth.floor(mouseX) - this.getX();
-                if (this.bordered) {
-                    i -= 4;
-                }
+    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
+            int i = Mth.floor(mouseX) - this.getX();
+            if (this.bordered) {
+                i -= 4;
+            }
 
-                String string = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
-                int mousePosition = this.font.plainSubstrByWidth(string, i).length() + this.displayPos;
+            String string = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
+            int mousePosition = this.font.plainSubstrByWidth(string, i).length() + this.displayPos;
 
-                if (this.doubleClick) {
-                    // double click drag across text to select individual words
-                    this.moveCursorTo(Math.max(this.doubleClickHighlightPos, this.getWordPosition(1, mousePosition, false)), false);
-                    this.moveCursorTo(Math.min(this.doubleClickCursorPos, this.getWordPosition(-1, mousePosition, false)), true);
+        if (this.doubleClick) {
+            // double click drag across text to select individual words
+            // dragging outside the edit box will select everything until beginning / end
+            if (this.clicked(mouseX, mouseY)) {
+                int rightBoundary = this.getWordPosition(1, mousePosition, false);
+                this.moveCursorTo(Math.max(this.doubleClickHighlightPos, rightBoundary), false);
+                int leftBoundary = this.getWordPosition(-1, mousePosition, false);
+                this.moveCursorTo(Math.min(this.doubleClickCursorPos, leftBoundary), true);
+            } else {
+                if (mousePosition > this.doubleClickHighlightPos) {
+                    this.moveCursorToEnd(false);
                 } else {
-                    // drag across text to select individual letters
-                    this.moveCursorTo(mousePosition, true);
+                    this.moveCursorTo(this.doubleClickHighlightPos, false);
                 }
-
-                return true;
+                if (mousePosition < this.doubleClickCursorPos) {
+                    this.moveCursorToStart(true);
+                } else {
+                    this.moveCursorTo(this.doubleClickCursorPos, true);
+                }
+            }
+        } else {
+            // drag across text to select individual letters
+            // dragging outside the edit box will select everything until beginning / end
+            if (this.clicked(mouseX, mouseY)) {
+                this.moveCursorTo(mousePosition, true);
+            } else if (this.highlightPos < mousePosition) {
+                this.moveCursorToEnd(true);
+            } else {
+                this.moveCursorToStart(true);
             }
         }
-
-        return false;
     }
 }

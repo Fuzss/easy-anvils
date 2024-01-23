@@ -47,7 +47,7 @@ public class FormattableEditBox extends AdvancedEditBox {
     @Override
     public void setValue(String text) {
         if (this.filter.test(text)) {
-            // custom max text length adjustments
+            // custom max text length adjustments so we ignore formatting codes
             int aboveMaxLength = ComponentDecomposer.getStringLength(text) - this.maxLength;
             if (aboveMaxLength > 0) {
                 this.value = ComponentDecomposer.removeLast(text, aboveMaxLength);
@@ -65,6 +65,7 @@ public class FormattableEditBox extends AdvancedEditBox {
     public void insertText(String textToWrite) {
         int i = Math.min(this.cursorPos, this.highlightPos);
         int j = Math.max(this.cursorPos, this.highlightPos);
+        // use our custom check for allowed chars so '§' is permitted
         String string = FormattedStringDecomposer.filterText(textToWrite);
         String string3 = new StringBuilder(this.value).replace(i, j, string).toString();
         int stringLength = ComponentDecomposer.getStringLength(string3) - this.maxLength;
@@ -112,9 +113,12 @@ public class FormattableEditBox extends AdvancedEditBox {
         this.doubleClick = millis - this.lastClickTime < 250L;
         if (this.doubleClick) {
             if (tripleClick) {
+                // triple click to select all text in the edit box ('§' and the subsequent char)
                 this.moveCursorToEnd(false);
                 this.setHighlightPos(0);
             } else {
+                // double click to select the clicked word
+                // highlight positions is right selection boundary, cursor position is left selection boundary
                 this.doubleClickHighlightPos = this.getWordPosition(1, this.getCursorPosition(), false);
                 this.moveCursorTo(this.doubleClickHighlightPos, false);
                 this.doubleClickCursorPos = this.getWordPosition(-1, this.getCursorPosition(), false);
@@ -126,29 +130,46 @@ public class FormattableEditBox extends AdvancedEditBox {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.active && this.visible) {
-            if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
-                int i = Mth.floor(mouseX) - this.getX();
-                if (this.bordered) {
-                    i -= 4;
-                }
-
-                String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-                int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos;
-
-                if (this.doubleClick) {
-                    this.moveCursorTo(Math.max(this.doubleClickHighlightPos, this.getWordPosition(1, mousePosition, false)), false);
-                    this.moveCursorTo(Math.min(this.doubleClickCursorPos, this.getWordPosition(-1, mousePosition, false)), true);
-                } else {
-                    this.moveCursorTo(mousePosition, true);
-                }
-
-                return true;
-            }
+    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
+        int i = Mth.floor(mouseX) - this.getX();
+        if (this.bordered) {
+            i -= 4;
         }
 
-        return false;
+        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos;
+
+        if (this.doubleClick) {
+            // double click drag across text to select individual words
+            // dragging outside the edit box will select everything until beginning / end
+            if (this.clicked(mouseX, mouseY)) {
+                int rightBoundary = this.getWordPosition(1, mousePosition, false);
+                this.moveCursorTo(Math.max(this.doubleClickHighlightPos, rightBoundary), false);
+                int leftBoundary = this.getWordPosition(-1, mousePosition, false);
+                this.moveCursorTo(Math.min(this.doubleClickCursorPos, leftBoundary), true);
+            } else {
+                if (mousePosition > this.doubleClickHighlightPos) {
+                    this.moveCursorToEnd(false);
+                } else {
+                    this.moveCursorTo(this.doubleClickHighlightPos, false);
+                }
+                if (mousePosition < this.doubleClickCursorPos) {
+                    this.moveCursorToStart(true);
+                } else {
+                    this.moveCursorTo(this.doubleClickCursorPos, true);
+                }
+            }
+        } else {
+            // drag across text to select individual letters
+            // dragging outside the edit box will select everything until beginning / end
+            if (this.clicked(mouseX, mouseY)) {
+                this.moveCursorTo(mousePosition, true);
+            } else if (this.highlightPos < mousePosition) {
+                this.moveCursorToEnd(true);
+            } else {
+                this.moveCursorToStart(true);
+            }
+        }
     }
 
     @Override
@@ -215,27 +236,25 @@ public class FormattableEditBox extends AdvancedEditBox {
 
     @Override
     protected void scrollTo(int position) {
-        if (this.font != null) {
-            int i = this.value.length();
-            if (this.displayPos > i) {
-                this.displayPos = i;
-            }
-
-            int j = this.getInnerWidth();
-            String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, j, Style.EMPTY);
-            int k = string.length() + this.displayPos;
-            if (position == this.displayPos) {
-                this.displayPos -= FormattedStringDecomposer.plainTailByWidth(this.font, this.value, j, Style.EMPTY).length();
-            }
-
-            if (position > k) {
-                this.displayPos += position - k;
-            } else if (position <= this.displayPos) {
-                this.displayPos -= this.displayPos - position;
-            }
-
-            this.displayPos = Mth.clamp(this.displayPos, 0, i);
+        int i = this.value.length();
+        if (this.displayPos > i) {
+            this.displayPos = i;
         }
+
+        int j = this.getInnerWidth();
+        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, j, Style.EMPTY);
+        int k = string.length() + this.displayPos;
+        if (position == this.displayPos) {
+            this.displayPos -= FormattedStringDecomposer.plainTailByWidth(this.font, this.value, j, Style.EMPTY).length();
+        }
+
+        if (position > k) {
+            this.displayPos += position - k;
+        } else if (position <= this.displayPos) {
+            this.displayPos -= this.displayPos - position;
+        }
+
+        this.displayPos = Mth.clamp(this.displayPos, 0, i);
     }
 
     @Override
