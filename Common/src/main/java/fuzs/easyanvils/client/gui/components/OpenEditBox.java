@@ -515,35 +515,28 @@ public class OpenEditBox extends EditBox {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.active && this.visible) {
-            if (this.isValidClickButton(button)) {
-                if (this.clicked(mouseX, mouseY)) {
-                    int i = Mth.floor(mouseX) - this.getX();
-                    if (this.bordered) {
-                        i -= 4;
-                    }
+    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
+        if (this.clicked(mouseX, mouseY)) {
+            int i = Mth.floor(mouseX) - this.getX();
+            if (this.bordered) {
+                i -= 4;
+            }
 
-                    if (this.doubleClick) {
-                        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-                        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos;
-                        this.shiftPressed = false;
-                        this.moveCursorTo(Math.max(this.doubleClickHighlightPos, this.getWordPosition(1, mousePosition, false)));
-                        this.shiftPressed = true;
-                        this.moveCursorTo(Math.min(this.doubleClickCursorPos, this.getWordPosition(-1, mousePosition, false)));
-                        this.shiftPressed = Screen.hasShiftDown();
-                    } else {
-                        this.shiftPressed = true;
-                        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-                        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos);
-                        this.shiftPressed = Screen.hasShiftDown();
-                    }
-
-                    return true;
-                }
+            if (this.doubleClick) {
+                String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+                int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos;
+                this.shiftPressed = false;
+                this.moveCursorTo(Math.max(this.doubleClickHighlightPos, this.getWordPosition(1, mousePosition, false)));
+                this.shiftPressed = true;
+                this.moveCursorTo(Math.min(this.doubleClickCursorPos, this.getWordPosition(-1, mousePosition, false)));
+                this.shiftPressed = Screen.hasShiftDown();
+            } else {
+                this.shiftPressed = true;
+                String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+                this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos);
+                this.shiftPressed = Screen.hasShiftDown();
             }
         }
-        return false;
     }
 
     @Override
