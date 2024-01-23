@@ -19,7 +19,6 @@ import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
 import fuzs.puzzleslib.api.network.v2.NetworkHandlerV2;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.core.registries.Registries;
@@ -70,7 +69,9 @@ public class EasyAnvils implements ModConstructor {
 
             @Override
             public ItemStack execute(BlockSource source, ItemStack stack) {
-                if (!EasyAnvils.CONFIG.get(ServerConfig.class).anvilRepairing) return super.execute(source, stack);
+                if (!EasyAnvils.CONFIG.get(ServerConfig.class).anvilRepairing) {
+                    return super.execute(source, stack);
+                }
                 Direction direction = source.state().getValue(DispenserBlock.FACING);
                 BlockPos pos = source.pos().relative(direction);
                 Level level = source.level();

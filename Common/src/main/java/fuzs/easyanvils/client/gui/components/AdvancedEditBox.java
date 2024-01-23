@@ -27,14 +27,14 @@ public class AdvancedEditBox extends EditBox {
     }
 
     @Override
-    protected void deleteText(int count) {
+    protected void deleteText(int charCount) {
         // delete entire words or everything until edit box beginning / end based on held modifier key
         if (Screen.hasControlDown()) {
-            if (count < 0) this.deleteChars(-this.cursorPos);
+            if (charCount < 0) this.deleteChars(-this.cursorPos);
         } else if (Screen.hasAltDown()) {
-            this.deleteWords(count);
+            this.deleteWords(charCount);
         } else {
-            this.deleteChars(count);
+            this.deleteChars(charCount);
         }
     }
 

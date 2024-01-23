@@ -24,7 +24,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -47,7 +50,8 @@ public class BlockConversionHandler {
 
     public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand interactionHand, BlockHitResult hitResult) {
         if (!EasyAnvils.CONFIG.get(ServerConfig.class).disableVanillaAnvil) return EventResultHolder.pass();
-        if (BLOCK_CONVERSIONS.containsKey(level.getBlockState(hitResult.getBlockPos()).getBlock())) {
+        BlockState blockState = level.getBlockState(hitResult.getBlockPos());
+        if (BLOCK_CONVERSIONS.containsKey(blockState.getBlock()) && !blockState.is(ModRegistry.VANILLA_ANVILS_BLOCK_TAG)) {
             player.displayClientMessage(Component.empty().append(INVALID_BLOCK_COMPONENT).withStyle(ChatFormatting.RED), true);
             return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));
         } else {
@@ -94,5 +98,32 @@ public class BlockConversionHandler {
 
     private static void copyBoundTags() {
         BLOCK_CONVERSIONS.forEach(BlockConversionHelper::copyBoundTags);
+    }
+
+    public static <T extends Comparable<T>, V extends T> BlockState copyAllProperties(BlockState blockState, Map<Property<?>, Comparable<?>> values) {
+        for (Map.Entry<Property<?>, Comparable<?>> entry : values.entrySet()) {
+            blockState = blockState.trySetValue((Property<T>) entry.getKey(), (V) entry.getValue());
+        }
+        return blockState;
+    }
+
+    public static BlockState convertReplacementToOriginal(@Nullable BlockState blockState) {
+        // mod replacement block coming in, we need to forward the original
+        if (blockState != null && BLOCK_CONVERSIONS.containsValue(blockState.getBlock())) {
+            Block block = BLOCK_CONVERSIONS.inverse().get(blockState.getBlock());
+            return copyAllProperties(block.defaultBlockState(), blockState.getValues());
+        } else {
+            return blockState;
+        }
+    }
+
+    public static BlockState convertOriginalToReplacement(@Nullable BlockState blockState) {
+        // original block coming in, we need to convert back to our replacement
+        if (blockState != null && BLOCK_CONVERSIONS.containsKey(blockState.getBlock())) {
+            Block block = BLOCK_CONVERSIONS.get(blockState.getBlock());
+            return copyAllProperties(block.defaultBlockState(), blockState.getValues());
+        } else {
+            return blockState;
+        }
     }
 }

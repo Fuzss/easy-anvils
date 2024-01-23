@@ -7,11 +7,11 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-public class LargeWidgetTooltipPositioner implements ClientTooltipPositioner {
+public class LargeTooltipPositioner implements ClientTooltipPositioner {
     @Nullable
     private final ScreenRectangle screenRectangle;
 
-    public LargeWidgetTooltipPositioner(@Nullable ScreenRectangle screenRectangle) {
+    public LargeTooltipPositioner(@Nullable ScreenRectangle screenRectangle) {
         this.screenRectangle = screenRectangle;
     }
 

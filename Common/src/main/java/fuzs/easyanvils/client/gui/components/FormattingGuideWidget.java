@@ -1,7 +1,7 @@
 package fuzs.easyanvils.client.gui.components;
 
 import com.google.common.collect.Lists;
-import fuzs.easyanvils.client.gui.screens.inventory.tooltip.LargeWidgetTooltipPositioner;
+import fuzs.easyanvils.client.gui.screens.inventory.tooltip.LargeTooltipPositioner;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
 import fuzs.puzzleslib.api.client.gui.v2.components.ScreenTooltipFactory;
 import net.minecraft.ChatFormatting;
@@ -35,7 +35,7 @@ public class FormattingGuideWidget extends AbstractStringWidget {
         }
         List<FormattedCharSequence> lines = formattingCodes.stream().map(FormattingGuideWidget::getVisualOrder).toList();
         this.setTooltip(ScreenTooltipFactory.create(lines, (ScreenRectangle screenRectangle, Boolean forKeyboard) -> {
-            return new LargeWidgetTooltipPositioner(forKeyboard ? screenRectangle : null);
+            return new LargeTooltipPositioner(forKeyboard ? screenRectangle : null);
         }));
     }
 

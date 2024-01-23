@@ -2,7 +2,6 @@ package fuzs.easyanvils.world.inventory;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.config.ServerConfig;
-import fuzs.easyanvils.core.CommonAbstractions;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
@@ -10,6 +9,7 @@ import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
 import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
+import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;

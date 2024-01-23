@@ -1,6 +1,6 @@
 package fuzs.easyanvils.world.inventory.state;
 
-import fuzs.easyanvils.core.CommonAbstractions;
+import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerLevelAccess;
