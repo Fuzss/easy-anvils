@@ -79,6 +79,8 @@ public class FormattedStringDecomposer {
     }
 
     public static boolean iterateFormatted(String text, Style defaultStyle, FormattedCharSink sink) {
+        // this method is adapter from StringDecomposer::iterateFormatted which normally removes all formatting codes (in the form of '§' + code) and converts them directly to the current style
+        // we don't want formatting codes to be removed, but do also want them to be applied to the current style to allow for editing text with formatting codes in a text field
         int textLength = text.length();
         Style currentStyle = defaultStyle;
 
@@ -92,7 +94,7 @@ public class FormattedStringDecomposer {
                         currentStyle = chatFormatting == ChatFormatting.RESET ? defaultStyle : currentStyle.applyLegacyFormat(chatFormatting);
                     }
 
-                    // also feed those chars so they show up in the anvil text box
+                    // also feed those chars, so they show up in the anvil text box
                     if (feedChar(text, defaultStyle, sink, position, character, textLength) == -1) {
                         return false;
                     }
@@ -105,7 +107,7 @@ public class FormattedStringDecomposer {
                 }
 
             } else {
-                // weird syntax to allow splitting this into separate method so it can be reused above
+                // weird syntax to allow splitting this into separate method, so it can be reused above
                 position = feedChar(text, currentStyle, sink, position, character, textLength);
                 if (position == -1) {
                     return false;

@@ -3,6 +3,7 @@ package fuzs.easyanvils.client.gui.screens.inventory;
 import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.components.FormattableEditBox;
+import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.client.C2SNameTagUpdateMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
@@ -11,8 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -42,7 +42,7 @@ public class NameTagEditScreen extends Screen {
     protected void init() {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = this.height / 4;
-        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
+        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (Button button) -> {
             EasyAnvils.NETWORK.sendToServer(new C2SNameTagUpdateMessage(this.hand, this.itemName));
             this.onClose();
         }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
@@ -56,10 +56,13 @@ public class NameTagEditScreen extends Screen {
         this.name.setTextColorUneditable(-1);
         this.name.setBordered(false);
         this.name.setMaxLength(50);
-        this.name.setResponder(s -> this.itemName = s);
+        this.name.setResponder((String s) -> {
+            this.itemName = s;
+        });
         this.name.setValue(this.itemName);
         this.addWidget(this.name);
         this.setInitialFocus(this.name);
+        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7, this.topPos + this.titleLabelY, this.font));
     }
 
     @Override
@@ -72,12 +75,13 @@ public class NameTagEditScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         guiGraphics.drawString(this.font, this.title, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, 4210752, false);
         this.name.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         guiGraphics.blit(EDIT_NAME_TAG_LOCATION, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
         guiGraphics.pose().pushPose();
@@ -85,4 +89,10 @@ public class NameTagEditScreen extends Screen {
         guiGraphics.renderItem(new ItemStack(Items.NAME_TAG), (this.leftPos + 17) / 2, (this.topPos + 8) / 2);
         guiGraphics.pose().popPose();
     }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
 }

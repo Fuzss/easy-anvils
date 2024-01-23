@@ -45,7 +45,7 @@ public class C2SNameTagUpdateMessage implements MessageV2<C2SNameTagUpdateMessag
                 if (stack.is(Items.NAME_TAG)) {
                     String s = FormattedStringDecomposer.filterText(message.title);
                     if (ComponentDecomposer.getStringLength(s) <= 50) {
-                        ModAnvilMenu.setFormattedItemName(s, stack);
+                        ModAnvilMenu.setFormattedItemName(s.trim(), stack);
                     }
                 }
             }

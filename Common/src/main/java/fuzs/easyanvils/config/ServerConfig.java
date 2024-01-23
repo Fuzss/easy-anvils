@@ -38,6 +38,8 @@ public class ServerConfig implements ConfigCore {
     public boolean penaltyFreeRenamesAndRepairs = true;
     @Config(description = "Most default value represents vanilla behavior.")
     public final CostsConfig costs = new CostsConfig();
+    @Config(category = "miscellaneous", description = "Leftover vanilla anvils in a world become unusable until they are broken and replaced.")
+    public boolean disableVanillaAnvil = true;
     
     public static class CostsConfig implements ConfigCore {
         @Config(description = "Multiplier for each level of a common enchantment being applied.")

@@ -3,6 +3,7 @@ package fuzs.easyanvils.handler;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import fuzs.easyanvils.EasyAnvils;
+import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.world.level.block.AnvilWithInventoryBlock;
 import fuzs.puzzleslib.api.block.v1.BlockConversionHelper;
@@ -45,8 +46,7 @@ public class BlockConversionHandler {
     }
 
     public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand interactionHand, BlockHitResult hitResult) {
-//        if (!EasyMagic.CONFIG.get(ServerConfig.class).disableVanillaEnchantingTable) return EventResultHolder.pass();
-        if (true) return EventResultHolder.pass();
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).disableVanillaAnvil) return EventResultHolder.pass();
         if (BLOCK_CONVERSIONS.containsKey(level.getBlockState(hitResult.getBlockPos()).getBlock())) {
             player.displayClientMessage(Component.empty().append(INVALID_BLOCK_COMPONENT).withStyle(ChatFormatting.RED), true);
             return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));

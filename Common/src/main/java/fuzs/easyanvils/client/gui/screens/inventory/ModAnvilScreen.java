@@ -3,6 +3,7 @@ package fuzs.easyanvils.client.gui.screens.inventory;
 import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.components.FormattableEditBox;
+import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.client.C2SRenameItemMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
@@ -22,6 +23,7 @@ public class ModAnvilScreen extends AnvilScreen {
 
     public ModAnvilScreen(AnvilMenu anvilMenu, Inventory inventory, Component component) {
         super(anvilMenu, inventory, component);
+        this.titleLabelY = 8;
     }
 
     @Override
@@ -44,6 +46,7 @@ public class ModAnvilScreen extends AnvilScreen {
         this.setInitialFocus(this.name);
         this.name.setEditable(false);
         this.name.setVisible(false);
+        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7, this.topPos + this.titleLabelY, this.font));
     }
 
     @Override

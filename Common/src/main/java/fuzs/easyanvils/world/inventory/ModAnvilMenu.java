@@ -324,10 +324,10 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
     public boolean setItemName(String newName) {
         newName = FormattedStringDecomposer.filterText(newName);
         if (ComponentDecomposer.getStringLength(newName) <= 50 && !Objects.equals(newName, this.itemName)) {
-            this.itemName = newName;
+            this.itemName = newName.trim();
             if (this.getSlot(2).hasItem()) {
                 ItemStack itemStack = this.getSlot(2).getItem();
-                setFormattedItemName(newName, itemStack);
+                setFormattedItemName(this.itemName, itemStack);
             }
 
             this.createResult();
