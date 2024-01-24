@@ -7,7 +7,6 @@
     "AnvilBlockMixin"
   ],
   "client": [
-    "client.EditBoxMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,7 +2,6 @@ package fuzs.easyanvils.client;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.screens.inventory.ModAnvilScreen;
-import fuzs.easyanvils.client.handler.AdvancedEditBoxHandler;
 import fuzs.easyanvils.client.handler.BlockModelHandler;
 import fuzs.easyanvils.client.handler.NameTagTooltipHandler;
 import fuzs.easyanvils.client.renderer.blockentity.AnvilRenderer;
@@ -13,12 +12,10 @@ import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
 import fuzs.puzzleslib.api.client.event.v1.ModelEvents;
 import fuzs.puzzleslib.api.client.event.v1.gui.ItemTooltipCallback;
-import fuzs.puzzleslib.api.client.event.v1.gui.ScreenMouseEvents;
 import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
 import fuzs.puzzleslib.api.event.v1.LoadCompleteCallback;
 import fuzs.puzzleslib.api.resources.v1.DynamicPackResources;
 import fuzs.puzzleslib.api.resources.v1.PackResourcesHelper;
-import net.minecraft.client.gui.screens.Screen;
 
 public class EasyAnvilsClient implements ClientModConstructor {
 
@@ -31,9 +28,6 @@ public class EasyAnvilsClient implements ClientModConstructor {
         ModelEvents.MODIFY_UNBAKED_MODEL.register(BlockModelHandler::onModifyUnbakedModel);
         ItemTooltipCallback.EVENT.register(NameTagTooltipHandler::onItemTooltip);
         LoadCompleteCallback.EVENT.register(BlockModelHandler::onLoadComplete);
-        ScreenMouseEvents.beforeMouseClick(Screen.class).register(AdvancedEditBoxHandler::onBeforeMouseClick);
-        ScreenMouseEvents.beforeMouseRelease(Screen.class).register(AdvancedEditBoxHandler::onBeforeMouseRelease);
-        ScreenMouseEvents.beforeMouseDrag(Screen.class).register(AdvancedEditBoxHandler::onBeforeMouseDrag);
     }
 
     @Override
