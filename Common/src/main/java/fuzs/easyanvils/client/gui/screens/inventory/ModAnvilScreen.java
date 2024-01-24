@@ -7,6 +7,7 @@ import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.client.C2SRenameItemMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
+import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -31,9 +32,9 @@ public class ModAnvilScreen extends AnvilScreen {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         if (EasyAnvils.CONFIG.get(ServerConfig.class).renamingSupportsFormatting) {
-            this.name = new FormattableEditBox(this.font, i + 62, j + 24, 103, 12, Component.translatable("container.repair"));
+            this.name = new FormattableEditBox(this.font, i + 62, j + 24, 103, 12, AnvilBlockEntity.REPAIR_COMPONENT);
         } else {
-            this.name = new EditBox(this.font, i + 62, j + 24, 103, 12, Component.translatable("container.repair"));
+            this.name = new EditBox(this.font, i + 62, j + 24, 103, 12, AnvilBlockEntity.REPAIR_COMPONENT);
         }
         this.name.setCanLoseFocus(false);
         this.name.setTextColor(-1);

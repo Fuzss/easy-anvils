@@ -51,7 +51,7 @@ public class BlockConversionHandler {
     public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand interactionHand, BlockHitResult hitResult) {
         if (!EasyAnvils.CONFIG.get(ServerConfig.class).disableVanillaAnvil) return EventResultHolder.pass();
         BlockState blockState = level.getBlockState(hitResult.getBlockPos());
-        if (BLOCK_CONVERSIONS.containsKey(blockState.getBlock()) && !blockState.is(ModRegistry.VANILLA_ANVILS_BLOCK_TAG)) {
+        if (BLOCK_CONVERSIONS.containsKey(blockState.getBlock()) && !blockState.is(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG)) {
             player.displayClientMessage(Component.empty().append(INVALID_BLOCK_COMPONENT).withStyle(ChatFormatting.RED), true);
             return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));
         } else {
@@ -89,7 +89,7 @@ public class BlockConversionHandler {
                 return;
             }
         }
-        if (RegistryHelper.is(ModRegistry.VANILLA_ANVILS_BLOCK_TAG, baseBlock)) {
+        if (RegistryHelper.is(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, baseBlock)) {
             BlockConversionHelper.setBlockForItem(blockItem, baseBlock);
         } else {
             BlockConversionHelper.setBlockForItem(blockItem, diagonalBlock);

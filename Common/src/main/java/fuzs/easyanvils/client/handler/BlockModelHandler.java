@@ -3,8 +3,10 @@ package fuzs.easyanvils.client.handler;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
 import fuzs.easyanvils.handler.BlockConversionHandler;
+import fuzs.puzzleslib.api.client.core.v1.ClientAbstractions;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import net.minecraft.Util;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
@@ -29,6 +31,14 @@ public class BlockModelHandler {
                 return convertAllBlockStates(entry.getKey(), entry.getValue()).entrySet().stream();
             }).collect(Util.toMap());
         });
+    }
+
+    public static void onLoadComplete() {
+        // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
+        for (Map.Entry<Block, Block> entry : BlockConversionHandler.BLOCK_CONVERSIONS.entrySet()) {
+            RenderType renderType = ClientAbstractions.INSTANCE.getRenderType(entry.getKey());
+            ClientAbstractions.INSTANCE.registerRenderType(entry.getValue(), renderType);
+        }
     }
 
     public static EventResultHolder<UnbakedModel> onModifyUnbakedModel(ResourceLocation modelLocation, Supplier<UnbakedModel> unbakedModel, Function<ResourceLocation, UnbakedModel> modelGetter, BiConsumer<ResourceLocation, UnbakedModel> modelAdder) {

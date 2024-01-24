@@ -77,7 +77,7 @@ public class ItemInteractionHandler {
         return BlockConversionHandler.convertOriginalToReplacement(newBlockState);
     }
 
-    public static void onAnvilRepair(Player player, ItemStack left, ItemStack right, ItemStack output, MutableFloat breakChance) {
+    public static void onAnvilUse(Player player, ItemStack left, ItemStack right, ItemStack output, MutableFloat breakChance) {
         if (EasyAnvils.CONFIG.get(ServerConfig.class).riskFreeAnvilRenaming && right.isEmpty()) {
             breakChance.accept(0.0F);
         } else {

@@ -13,6 +13,6 @@ public class ModBlockTagsProvider extends AbstractTagProvider.Blocks {
 
     @Override
     public void addTags(HolderLookup.Provider provider) {
-        this.tag(ModRegistry.VANILLA_ANVILS_BLOCK_TAG);
+        this.tag(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG);
     }
 }

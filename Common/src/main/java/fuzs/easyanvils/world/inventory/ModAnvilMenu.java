@@ -8,7 +8,6 @@ import fuzs.easyanvils.util.FormattedStringDecomposer;
 import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
 import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
-import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,33 +34,25 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
         super(id, inventory);
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, ContainerLevelAccess.NULL);
         this.vanillaAnvilState = new VanillaAnvilMenu(inventory, ContainerLevelAccess.NULL);
+        this.createResult();
     }
 
     public ModAnvilMenu(int id, Inventory inventory, Container inputSlots, ContainerLevelAccess containerLevelAccess) {
         super(id, inventory, containerLevelAccess);
-        this.updateInputSlots(inputSlots);
-        this.addSlotListener(this);
+        this.setInputSlots(inputSlots);
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, containerLevelAccess);
         this.vanillaAnvilState = new VanillaAnvilMenu(inventory, containerLevelAccess);
+        this.createResult();
+        this.addSlotListener(this);
     }
 
-    private void updateInputSlots(Container inputSlots) {
+    private void setInputSlots(Container inputSlots) {
         this.inputSlots = inputSlots;
         // we could also replace slots directly in the slots list as we have direct access to it,
         // but the Ledger mod hooks into AbstractContainerMenu::addSlot which breaks that mod as we wouldn't be using AbstractContainerMenu::addSlot
         // (they store the menu as a @NotNull value, leads to an NPE)
         this.slots.get(0).container = inputSlots;
         this.slots.get(1).container = inputSlots;
-    }
-
-    @Override
-    protected void onTake(Player player, ItemStack stack) {
-        super.onTake(player, stack);
-        this.access.execute((level, pos) -> {
-            if (level.getBlockEntity(pos) instanceof AnvilBlockEntity blockEntity) {
-                this.updateInputSlots(blockEntity);
-            }
-        });
     }
 
     @Override
@@ -330,7 +321,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
                 setFormattedItemName(this.itemName, itemStack);
             }
 
-            this.createResult();
+//            this.createResult();
             return true;
         }
 
@@ -348,12 +339,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
 
     @Override
     public void slotChanged(AbstractContainerMenu containerToSend, int dataSlotIndex, ItemStack stack) {
-        // this is only ever run server side
-        if (containerToSend == this) {
-            if (dataSlotIndex >= 0 && dataSlotIndex < 2) {
-                this.slotsChanged(this.inputSlots);
-            }
-        }
+        if (dataSlotIndex >= 0 && dataSlotIndex < 2) this.createResult();
     }
 
     @Override

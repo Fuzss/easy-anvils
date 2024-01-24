@@ -2,26 +2,23 @@ package fuzs.easyanvils.client;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.screens.inventory.ModAnvilScreen;
+import fuzs.easyanvils.client.handler.AdvancedEditBoxHandler;
 import fuzs.easyanvils.client.handler.BlockModelHandler;
 import fuzs.easyanvils.client.handler.NameTagTooltipHandler;
 import fuzs.easyanvils.client.renderer.blockentity.AnvilRenderer;
 import fuzs.easyanvils.data.client.DynamicModelProvider;
-import fuzs.easyanvils.handler.BlockConversionHandler;
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.puzzleslib.api.client.core.v1.ClientAbstractions;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
 import fuzs.puzzleslib.api.client.event.v1.ModelEvents;
 import fuzs.puzzleslib.api.client.event.v1.gui.ItemTooltipCallback;
+import fuzs.puzzleslib.api.client.event.v1.gui.ScreenMouseEvents;
 import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
 import fuzs.puzzleslib.api.event.v1.LoadCompleteCallback;
 import fuzs.puzzleslib.api.resources.v1.DynamicPackResources;
 import fuzs.puzzleslib.api.resources.v1.PackResourcesHelper;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.level.block.Block;
-
-import java.util.Map;
+import net.minecraft.client.gui.screens.Screen;
 
 public class EasyAnvilsClient implements ClientModConstructor {
 
@@ -33,13 +30,10 @@ public class EasyAnvilsClient implements ClientModConstructor {
     private static void registerHandlers() {
         ModelEvents.MODIFY_UNBAKED_MODEL.register(BlockModelHandler::onModifyUnbakedModel);
         ItemTooltipCallback.EVENT.register(NameTagTooltipHandler::onItemTooltip);
-        LoadCompleteCallback.EVENT.register(() -> {
-            // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
-            for (Map.Entry<Block, Block> entry : BlockConversionHandler.BLOCK_CONVERSIONS.entrySet()) {
-                RenderType renderType = ClientAbstractions.INSTANCE.getRenderType(entry.getKey());
-                ClientAbstractions.INSTANCE.registerRenderType(entry.getValue(), renderType);
-            }
-        });
+        LoadCompleteCallback.EVENT.register(BlockModelHandler::onLoadComplete);
+        ScreenMouseEvents.beforeMouseClick(Screen.class).register(AdvancedEditBoxHandler::onBeforeMouseClick);
+        ScreenMouseEvents.beforeMouseRelease(Screen.class).register(AdvancedEditBoxHandler::onBeforeMouseRelease);
+        ScreenMouseEvents.beforeMouseDrag(Screen.class).register(AdvancedEditBoxHandler::onBeforeMouseDrag);
     }
 
     @Override

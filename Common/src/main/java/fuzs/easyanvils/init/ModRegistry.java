@@ -23,7 +23,7 @@ public class ModRegistry {
     public static final Holder.Reference<MenuType<ModAnvilMenu>> ANVIL_MENU_TYPE = REGISTRY.registerMenuType("repair", () -> ModAnvilMenu::new);
 
     static final BoundTagFactory TAGS = BoundTagFactory.make(EasyAnvils.MOD_ID);
-    public static final TagKey<Block> VANILLA_ANVILS_BLOCK_TAG = TAGS.registerBlockTag("vanilla_anvils");
+    public static final TagKey<Block> UNALTERED_ANVILS_BLOCK_TAG = TAGS.registerBlockTag("unaltered_anvils");
 
     public static void touch() {
 

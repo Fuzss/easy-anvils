@@ -26,5 +26,4 @@ abstract class AnvilBlockMixin extends FallingBlock {
     private static BlockState damage$1(BlockState blockState) {
         return BlockConversionHandler.convertOriginalToReplacement(blockState);
     }
-
 }

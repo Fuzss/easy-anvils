@@ -1,7 +1,6 @@
 package fuzs.easyanvils.world.level.block;
 
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.easyanvils.world.inventory.ModAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.stats.Stats;
@@ -37,17 +36,11 @@ public class AnvilWithInventoryBlock extends AnvilBlock implements EntityBlock {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand interactionHand, BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
-        } else {
-            if (level.getBlockEntity(pos) instanceof AnvilBlockEntity blockEntity) {
-                player.openMenu(blockEntity);
-                if (player.containerMenu instanceof ModAnvilMenu) {
-                    // items might still be in inventory slots, so this needs to update so that correct result is shown
-                    player.containerMenu.slotsChanged(blockEntity);
-                }
-                player.awardStat(Stats.INTERACT_WITH_ANVIL);
-            }
-            return InteractionResult.CONSUME;
+        } else if (level.getBlockEntity(pos) instanceof AnvilBlockEntity blockEntity) {
+            player.openMenu(blockEntity);
+            player.awardStat(Stats.INTERACT_WITH_ANVIL);
         }
+        return InteractionResult.CONSUME;
     }
 
     @Override

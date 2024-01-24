@@ -57,7 +57,7 @@ public class EasyAnvils implements ModConstructor {
     private static void registerHandlers() {
         PlayerInteractEvents.USE_ITEM.register(ItemInteractionHandler::onUseItem);
         PlayerInteractEvents.USE_BLOCK.register(ItemInteractionHandler::onUseBlock);
-        AnvilEvents.USE.register(ItemInteractionHandler::onAnvilRepair);
+        AnvilEvents.USE.register(ItemInteractionHandler::onAnvilUse);
         RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK).register(BlockConversionHandler::onRegistryEntryAdded);
         PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler::onUseBlock);
         TagsUpdatedCallback.EVENT.register(EventPhase.FIRST, BlockConversionHandler::onTagsUpdated);

@@ -8,7 +8,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,6 +23,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class AnvilBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, ContainerImpl {
+    public static final MutableComponent REPAIR_COMPONENT = Component.translatable("container.repair");
+
     private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
 
     public AnvilBlockEntity(BlockPos blockPos, BlockState blockState) {
@@ -66,12 +70,7 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
 
     @Override
     public boolean stillValid(Player player) {
-        // anvil might break to weaker version, no reason to close the screen though, therefore instanceof check instead of reference comparison
-        if (this.level != null && !(this.level.getBlockEntity(this.worldPosition) instanceof AnvilBlockEntity)) {
-            return false;
-        } else {
-            return !(player.distanceToSqr(this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 0.5, this.worldPosition.getZ() + 0.5) > 64.0);
-        }
+        return Container.stillValidBlockEntity(this, player);
     }
 
     @Override
@@ -91,7 +90,7 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
 
     @Override
     protected Component getDefaultName() {
-        return Component.translatable("container.repair");
+        return REPAIR_COMPONENT;
     }
 
     @Override

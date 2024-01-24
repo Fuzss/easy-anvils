@@ -7,3 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v20.4.0-1.20.4] - 2024-01-20
 - Ported to Minecraft 1.20.4
 - Ported to NeoForge
+### Added
+- Add a formatting codes guide to anvil & name tag screen
+- Add experimental support for double click dragging to select multiple words to anvil & name tag text boxes
+### Changed
+- Overhaul large portions of the mod, anvil changes are no longer applied via Mixin, instead anvil blocks are replaced internally
+- Should not result in any noticeable gameplay differences
+- This also means modded anvils are now fully supported, although any custom properties like custom repairing behavior will be overwritten
+- Modded anvils can opt out from being replaced by Easy Anvils by being added to the `easyanvils:unaltered_anvils` block tag

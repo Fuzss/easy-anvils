@@ -16,7 +16,9 @@ public class NameTagTooltipHandler {
     public static final String KEY_NAME_TAG_DESCRIPTION = "easyanvils.item.name_tag.description";
 
     public static void onItemTooltip(ItemStack stack, @Nullable Player player, List<Component> lines, TooltipFlag context) {
-        if (!EasyAnvils.CONFIG.getHolder(ServerConfig.class).isAvailable() || !EasyAnvils.CONFIG.get(ServerConfig.class).editNameTagsNoAnvil) return;
+        if (!EasyAnvils.CONFIG.getHolder(ServerConfig.class).isAvailable() || !EasyAnvils.CONFIG.get(ServerConfig.class).editNameTagsNoAnvil) {
+            return;
+        }
         if (stack.is(Items.NAME_TAG)) {
             Component sneakComponent = Component.keybind("key.sneak").withStyle(ChatFormatting.LIGHT_PURPLE);
             Component useComponent = Component.keybind("key.use").withStyle(ChatFormatting.LIGHT_PURPLE);

@@ -9,7 +9,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractStringWidget;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
-import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
@@ -48,8 +47,8 @@ public class FormattingGuideWidget extends AbstractStringWidget {
     }
 
     @Override
-    public void playDownSound(SoundManager handler) {
-        // NO-OP
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return false;
     }
 
     private static FormattedCharSequence getVisualOrder(FormattedText text) {
