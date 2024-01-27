@@ -1,3 +1,20 @@
 {
-  "values": []
+  "values": [
+    {
+      "id": "betterend:aeternium_anvil",
+      "required": false
+    },
+    {
+      "id": "betterend:terminite_anvil",
+      "required": false
+    },
+    {
+      "id": "betterend:thallasium_anvil",
+      "required": false
+    },
+    {
+      "id": "betternether:cincinnasite_anvil",
+      "required": false
+    }
+  ]
 }
