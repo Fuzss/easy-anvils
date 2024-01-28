@@ -71,21 +71,22 @@ public class EasyAnvils implements ModConstructor {
             public ItemStack execute(BlockSource source, ItemStack stack) {
                 if (!EasyAnvils.CONFIG.get(ServerConfig.class).anvilRepairing) {
                     return super.execute(source, stack);
-                }
-                Direction direction = source.state().getValue(DispenserBlock.FACING);
-                BlockPos pos = source.pos().relative(direction);
-                Level level = source.level();
-                BlockState state = level.getBlockState(pos);
-                this.setSuccess(true);
-                if (state.is(BlockTags.ANVIL)) {
-                    if (ItemInteractionHandler.tryRepairAnvil(level, pos, state)) {
-                        stack.shrink(1);
-                    } else {
-                        this.setSuccess(false);
-                    }
-                    return stack;
                 } else {
-                    return super.execute(source, stack);
+                    Direction direction = source.state().getValue(DispenserBlock.FACING);
+                    BlockPos pos = source.pos().relative(direction);
+                    Level level = source.level();
+                    BlockState state = level.getBlockState(pos);
+                    this.setSuccess(true);
+                    if (state.is(BlockTags.ANVIL)) {
+                        if (ItemInteractionHandler.tryRepairAnvil(level, pos, state)) {
+                            stack.shrink(1);
+                        } else {
+                            this.setSuccess(false);
+                        }
+                        return stack;
+                    } else {
+                        return super.execute(source, stack);
+                    }
                 }
             }
         });

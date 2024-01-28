@@ -23,11 +23,10 @@ accessible  field   net/minecraft/client/gui/components/EditBox hint    Lnet/min
 extendable  method  net/minecraft/client/gui/components/EditBox scrollTo    (I)V
 extendable  method  net/minecraft/client/gui/components/EditBox getMaxLength    ()I
 accessible  field   net/minecraft/client/gui/screens/inventory/AnvilScreen  name    Lnet/minecraft/client/gui/components/EditBox;
-accessible  field   net/minecraft/world/inventory/Slot  container   Lnet/minecraft/world/Container;
-mutable field   net/minecraft/world/inventory/Slot  container   Lnet/minecraft/world/Container;
-accessible  field   net/minecraft/world/inventory/ItemCombinerMenu  inputSlots  Lnet/minecraft/world/Container;
-mutable  field   net/minecraft/world/inventory/ItemCombinerMenu  inputSlots  Lnet/minecraft/world/Container;
+mutable field   net/minecraft/world/inventory/ItemCombinerMenu  access Lnet/minecraft/world/inventory/ContainerLevelAccess;
 accessible  field   net/minecraft/world/inventory/AnvilMenu itemName    Ljava/lang/String;
 accessible  field   net/minecraft/world/inventory/AnvilMenu repairItemCountCost I
 accessible  field   net/minecraft/world/level/block/entity/BlockEntityType$Builder  validBlocks Ljava/util/Set;
 mutable field   net/minecraft/world/level/block/entity/BlockEntityType$Builder  validBlocks Ljava/util/Set;
+accessible  field   net/minecraft/world/SimpleContainer items  Lnet/minecraft/core/NonNullList;
+mutable field   net/minecraft/world/SimpleContainer items  Lnet/minecraft/core/NonNullList;

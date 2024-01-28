@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v20.4.2-1.20.4] - 2024-01-28
+### Changed
+- Apply anvil menu changes in a less invasive way, also send less update packets to clients
+### Fix
+- Fix unable to change item name on anvil
+
 ## [v20.4.1-1.20.4] - 2024-01-27
 ### Fix
 - Exclude Better Nether & Better End anvils by default to avoid a crash trying to use them

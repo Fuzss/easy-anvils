@@ -8,13 +8,16 @@ import fuzs.easyanvils.util.FormattedStringDecomposer;
 import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
 import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
+import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -24,35 +27,33 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import java.util.Map;
 import java.util.Objects;
 
-public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
+public class ModAnvilMenu extends AnvilMenu {
+    private final Container container;
     private final AnvilMenuState builtInAnvilState;
     private final AnvilMenuState vanillaAnvilState;
 
     public ModAnvilMenu(int id, Inventory inventory) {
-        // this constructor may not override inputSlots as vanilla adds a listener to it which is necessary client-side for the renaming edit box
-        // so let this go to super instead of the main constructor to skip any inputSlots shenanigans
         super(id, inventory);
+        // never used since still valid is not called on clients, might as well be null
+        this.container = new SimpleContainer();
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, ContainerLevelAccess.NULL);
         this.vanillaAnvilState = new VanillaAnvilMenu(inventory, ContainerLevelAccess.NULL);
         this.createResult();
     }
 
-    public ModAnvilMenu(int id, Inventory inventory, Container inputSlots, ContainerLevelAccess containerLevelAccess) {
+    public ModAnvilMenu(int id, Inventory inventory, AnvilBlockEntity blockEntity, ContainerLevelAccess containerLevelAccess) {
         super(id, inventory, containerLevelAccess);
-        this.setInputSlots(inputSlots);
+        // we just need this for checking if the block entity is still valid
+        this.container = blockEntity;
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, containerLevelAccess);
         this.vanillaAnvilState = new VanillaAnvilMenu(inventory, containerLevelAccess);
+        this.initializeInputSlots(blockEntity);
         this.createResult();
-        this.addSlotListener(this);
     }
 
-    private void setInputSlots(Container inputSlots) {
-        this.inputSlots = inputSlots;
-        // we could also replace slots directly in the slots list as we have direct access to it,
-        // but the Ledger mod hooks into AbstractContainerMenu::addSlot which breaks that mod as we wouldn't be using AbstractContainerMenu::addSlot
-        // (they store the menu as a @NotNull value, leads to an NPE)
-        this.slots.get(0).container = inputSlots;
-        this.slots.get(1).container = inputSlots;
+    private void initializeInputSlots(AnvilBlockEntity blockEntity) {
+        ((SimpleContainer) this.inputSlots).items = blockEntity.getItems();
+        ((SimpleContainer) this.inputSlots).addListener($ -> blockEntity.setChanged());
     }
 
     @Override
@@ -62,7 +63,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
 
     @Override
     public boolean stillValid(Player player) {
-        return this.inputSlots.stillValid(player);
+        return this.container.stillValid(player);
     }
 
     @Override
@@ -296,19 +297,11 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
 
     @Override
     public void removed(Player player) {
-        // copied from container super method
-        if (player instanceof ServerPlayer serverPlayer) {
-            ItemStack itemstack = this.getCarried();
-            if (!itemstack.isEmpty()) {
-                if (player.isAlive() && !serverPlayer.hasDisconnected()) {
-                    player.getInventory().placeItemBackInInventory(itemstack);
-                } else {
-                    player.drop(itemstack, false);
-                }
-                this.setCarried(ItemStack.EMPTY);
-            }
-        }
-        this.removeSlotListener(this);
+        // prevent items from being cleared out of the container
+        ContainerLevelAccess containerLevelAccess = this.access;
+        this.access = ContainerLevelAccess.NULL;
+        super.removed(player);
+        this.access = containerLevelAccess;
     }
 
     @Override
@@ -321,7 +314,7 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
                 setFormattedItemName(this.itemName, itemStack);
             }
 
-//            this.createResult();
+            this.createResult();
             return true;
         }
 
@@ -335,16 +328,6 @@ public class ModAnvilMenu extends AnvilMenu implements ContainerListener {
         } else {
             itemStack.setHoverName(component);
         }
-    }
-
-    @Override
-    public void slotChanged(AbstractContainerMenu containerToSend, int dataSlotIndex, ItemStack stack) {
-        if (dataSlotIndex >= 0 && dataSlotIndex < 2) this.createResult();
-    }
-
-    @Override
-    public void dataChanged(AbstractContainerMenu containerMenu, int dataSlotIndex, int value) {
-        // NO-OP
     }
 
     public static int repairCostToRepairs(int repairCost) {
