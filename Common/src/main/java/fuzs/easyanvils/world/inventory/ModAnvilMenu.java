@@ -109,7 +109,6 @@ public class ModAnvilMenu extends AnvilMenu {
             int repairOperationCost = 0;
             int enchantOperationCost = 0;
             int renameOperationCost = 0;
-            final int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).tooExpensiveLimit;
             if (!right.isEmpty()) {
                 isBook = right.getItem() == Items.ENCHANTED_BOOK && !EnchantedBookItem.getEnchantments(right).isEmpty();
                 if (output.isDamageableItem() && output.getItem().isValidRepairItem(left, right)) {
@@ -255,18 +254,18 @@ public class ModAnvilMenu extends AnvilMenu {
                 this.setCost(baseRepairCost + allOperationsCost);
             }
 
-            if (enchantOperationCost == 0 && this.getCost() >= maxAnvilRepairCost && EasyAnvils.CONFIG.get(ServerConfig.class).renameAndRepairCosts == ServerConfig.RenameAndRepairCost.LIMITED) {
-                // we have removed the max repair limit, so just use the vanilla limit here
-                if (maxAnvilRepairCost == -1) {
-                    this.setCost(39);
-                } else {
-                    this.setCost(maxAnvilRepairCost - 1);
-                }
-            }
+            int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).tooExpensiveLimit;
+            boolean hasNoLimit = maxAnvilRepairCost == -1;
+            // we have removed the max repair limit, so just use the vanilla limit here
+            if (hasNoLimit) maxAnvilRepairCost = 40;
+            if (this.getCost() >= maxAnvilRepairCost) {
 
-            // allow for custom max enchantment levels limit
-            if (this.getCost() >= maxAnvilRepairCost && maxAnvilRepairCost != -1 && !this.player.getAbilities().instabuild) {
-                output = ItemStack.EMPTY;
+                if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).renameAndRepairCosts == ServerConfig.RenameAndRepairCost.LIMITED) {
+                    this.setCost(maxAnvilRepairCost - 1);
+                } else if (!hasNoLimit && !this.player.getAbilities().instabuild) {
+                    // allow for custom max enchantment levels limit
+                    output = ItemStack.EMPTY;
+                }
             }
 
             if (!output.isEmpty()) {
