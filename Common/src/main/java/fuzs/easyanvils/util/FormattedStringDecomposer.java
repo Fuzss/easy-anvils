@@ -22,9 +22,9 @@ public class FormattedStringDecomposer {
     public static int stringWidth(Font font, @Nullable String content, int skip) {
         if (content == null) return 0;
         MutableFloat mutableFloat = new MutableFloat();
-        FormattedStringDecomposer.iterateFormatted(content, Style.EMPTY, (index, style, j) -> {
+        FormattedStringDecomposer.iterateFormatted(content, Style.EMPTY, (int index, Style style, int codePoint) -> {
             if (index >= skip) {
-                mutableFloat.add(font.getSplitter().stringWidth(FormattedCharSequence.forward(Character.toString(j), style)));
+                mutableFloat.add(font.getSplitter().stringWidth(FormattedCharSequence.forward(Character.toString(codePoint), style)));
             }
             return true;
         });

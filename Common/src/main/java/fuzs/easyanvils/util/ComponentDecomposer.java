@@ -13,7 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class ComponentDecomposer {
@@ -56,7 +57,7 @@ public class ComponentDecomposer {
 
     public static Component toFormattedComponent(@Nullable String value) {
         return toComponentEntries(value).stream()
-                .map(entry -> Component.literal(entry.string().get()).withStyle(entry.style()))
+                .map(entry -> Component.literal(entry.getValue()).withStyle(entry.getStyle()))
                 .reduce(MutableComponent::append)
                 .orElse(Component.empty());
     }
@@ -66,29 +67,38 @@ public class ComponentDecomposer {
         for (int i = 0; i < amount; i++) {
             ComponentEntry componentEntry = componentEntries.peekLast();
             if (componentEntry != null) {
-                if (!componentEntry.string().get().isEmpty()) {
-                    componentEntry.string().updateAndGet(s -> s.substring(0, s.length() - 1));
+                if (!componentEntry.getValue().isEmpty()) {
+                    componentEntry.updateValue(s -> s.substring(0, s.length() - 1));
                 }
-                if (componentEntry.string().get().isEmpty()) {
+                if (componentEntry.getValue().isEmpty()) {
                     componentEntries.pollLast();
                 }
             }
         }
-        return componentEntries.stream().map(entry -> applyLegacyFormatting(entry.string().get(), entry.style())).collect(Collectors.joining());
+        return componentEntries.stream().map(entry -> applyLegacyFormatting(entry.getValue(), entry.getStyle())).collect(Collectors.joining());
     }
 
     private static Deque<ComponentEntry> toComponentEntries(@Nullable String value) {
         Deque<ComponentEntry> values = Lists.newLinkedList();
         if (value == null) return values;
-        StringDecomposer.iterateFormatted(value, EMPTY, (i, style, j) -> {
+        AtomicBoolean resetStyle = new AtomicBoolean(true);
+        StringDecomposer.iterateFormatted(value, EMPTY, (int index, Style style, int codePoint) -> {
             ComponentEntry last = values.peekLast();
-            if (last != null && last.style().equals(style)) {
-                last.string().updateAndGet(s -> s + Character.toString(j));
+            if (last != null && last.getStyle().equals(style)) {
+                last.updateValue(s -> s + Character.toString(codePoint));
             } else {
-                values.offerLast(new ComponentEntry(new AtomicReference<>(Character.toString(j)), style));
+                values.offerLast(new ComponentEntry(codePoint, style));
+            }
+            if (style != EMPTY) {
+                resetStyle.set(false);
             }
             return true;
         });
+        // when no formatting codes have been specified fall back to empty style so that vanilla italic name for renamed /
+        // blue name for enchanted will apply; this preserves vanilla behavior
+        if (resetStyle.get()) {
+            values.forEach(ComponentEntry::resetStyle);
+        }
         return values;
     }
 
@@ -96,7 +106,29 @@ public class ComponentDecomposer {
         return toFormattedComponent(value).getString().length();
     }
 
-    private record ComponentEntry(AtomicReference<String> string, Style style) {
+    private static class ComponentEntry {
+        private String value;
+        private Style style;
 
+        public ComponentEntry(int codePoint, Style style) {
+            this.value = Character.toString(codePoint);
+            this.style = style;
+        }
+
+        public String getValue() {
+            return this.value;
+        }
+
+        public void updateValue(UnaryOperator<String> operator) {
+            this.value = operator.apply(this.value);
+        }
+
+        public Style getStyle() {
+            return this.style;
+        }
+
+        public void resetStyle() {
+            this.style = Style.EMPTY;
+        }
     }
 }
