@@ -1,6 +1,7 @@
 package fuzs.easyanvils.client.handler;
 
 import fuzs.easyanvils.EasyAnvils;
+import fuzs.easyanvils.config.ClientConfig;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.puzzleslib.api.core.v1.Proxy;
 import net.minecraft.ChatFormatting;
@@ -17,8 +18,9 @@ public class NameTagTooltipHandler {
     public static final String KEY_NAME_TAG_DESCRIPTION = "easyanvils.item.name_tag.description";
 
     public static void onItemTooltip(ItemStack stack, @Nullable Player player, List<Component> lines, TooltipFlag context) {
+        if (!EasyAnvils.CONFIG.get(ClientConfig.class).nameTagTooltip) return;
         if (!EasyAnvils.CONFIG.getHolder(ServerConfig.class).isAvailable() ||
-                !EasyAnvils.CONFIG.get(ServerConfig.class).editNameTagsNoAnvil) {
+                !EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
             return;
         }
         if (stack.is(Items.NAME_TAG)) {

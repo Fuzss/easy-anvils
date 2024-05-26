@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 public class ItemInteractionHandler {
 
     public static EventResultHolder<InteractionResult> onUseItem(Player player, Level level, InteractionHand hand) {
-        if (!EasyAnvils.CONFIG.get(ServerConfig.class).editNameTagsNoAnvil) return EventResultHolder.pass();
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) return EventResultHolder.pass();
         ItemStack stack = player.getItemInHand(hand);
         if (player.isShiftKeyDown() && stack.is(Items.NAME_TAG)) {
             if (!level.isClientSide) {
@@ -36,7 +36,7 @@ public class ItemInteractionHandler {
     }
 
     public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
-        if (!EasyAnvils.CONFIG.get(ServerConfig.class).anvilRepairing) return EventResultHolder.pass();
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilRepairing) return EventResultHolder.pass();
         ItemStack stack = player.getItemInHand(hand);
         if (stack.is(Items.IRON_BLOCK)) {
             BlockPos pos = hitResult.getBlockPos();
@@ -78,10 +78,10 @@ public class ItemInteractionHandler {
     }
 
     public static void onAnvilUse(Player player, ItemStack left, ItemStack right, ItemStack output, MutableFloat breakChance) {
-        if (EasyAnvils.CONFIG.get(ServerConfig.class).riskFreeAnvilRenaming && right.isEmpty()) {
+        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.riskFreeAnvilRenaming && right.isEmpty()) {
             breakChance.accept(0.0F);
         } else {
-            breakChance.accept((float) EasyAnvils.CONFIG.get(ServerConfig.class).anvilBreakChance);
+            breakChance.accept((float) EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilBreakChance);
         }
     }
 }

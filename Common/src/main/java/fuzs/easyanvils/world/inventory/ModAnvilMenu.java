@@ -99,10 +99,10 @@ public class ModAnvilMenu extends AnvilMenu {
             this.setCost(0);
         } else {
             ItemStack output = left.copy();
-            Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(output);
+            Map<Enchantment, Integer> leftEnchantments = EnchantmentHelper.getEnchantments(output);
             int baseRepairCost = left.getBaseRepairCost() + (right.isEmpty() ? 0 : right.getBaseRepairCost());
             // no prior work penalty, or fixed
-            baseRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.operator.applyAsInt(baseRepairCost);
+            baseRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.priorWorkPenalty.operator.applyAsInt(baseRepairCost);
             this.repairItemCountCost = 0;
             boolean isBook = false;
 
@@ -110,9 +110,9 @@ public class ModAnvilMenu extends AnvilMenu {
             int enchantOperationCost = 0;
             int renameOperationCost = 0;
             if (!right.isEmpty()) {
-                isBook = right.getItem() == Items.ENCHANTED_BOOK && !EnchantedBookItem.getEnchantments(right).isEmpty();
+                isBook = right.is(Items.ENCHANTED_BOOK) && !EnchantedBookItem.getEnchantments(right).isEmpty();
                 if (output.isDamageableItem() && output.getItem().isValidRepairItem(left, right)) {
-                    int l2 = Math.min(output.getDamageValue(), output.getMaxDamage() / 4);
+                    int l2 = (int) Math.min(output.getDamageValue(), Math.floor(output.getMaxDamage() * EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
                     if (l2 <= 0) {
                         this.resultSlots.setItem(0, ItemStack.EMPTY);
                         this.setCost(0);
@@ -124,7 +124,7 @@ public class ModAnvilMenu extends AnvilMenu {
                         int j3 = output.getDamageValue() - l2;
                         output.setDamageValue(j3);
                         repairOperationCost += EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialUnitCost;
-                        l2 = Math.min(output.getDamageValue(), output.getMaxDamage() / 4);
+                        l2 = (int) Math.min(output.getDamageValue(), Math.floor(output.getMaxDamage() * EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
                     }
 
                     this.repairItemCountCost = repairMaterials;
@@ -138,7 +138,7 @@ public class ModAnvilMenu extends AnvilMenu {
                     if (output.isDamageableItem() && !isBook) {
                         int l = left.getMaxDamage() - left.getDamageValue();
                         int i1 = right.getMaxDamage() - right.getDamageValue();
-                        int j1 = i1 + output.getMaxDamage() * 12 / 100;
+                        int j1 = i1 + (int) Math.floor(output.getMaxDamage() * EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithOtherItemBonusDurability);
                         int k1 = l + j1;
                         int l1 = output.getMaxDamage() - k1;
                         if (l1 < 0) {
@@ -151,22 +151,22 @@ public class ModAnvilMenu extends AnvilMenu {
                         }
                     }
 
-                    Map<Enchantment, Integer> map1 = EnchantmentHelper.getEnchantments(right);
-                    boolean flag2 = false;
-                    boolean flag3 = false;
+                    Map<Enchantment, Integer> rightEnchantments = EnchantmentHelper.getEnchantments(right);
+                    boolean itemWithCompatibleEnchantment = false;
+                    boolean itemWithIncompatibleEnchantment = false;
 
-                    for (Enchantment enchantment1 : map1.keySet()) {
-                        if (enchantment1 != null) {
-                            int otherEnchantmentLevel = map.getOrDefault(enchantment1, 0);
-                            int enchantmentLevel = map1.get(enchantment1);
-                            enchantmentLevel = otherEnchantmentLevel == enchantmentLevel ? enchantmentLevel + 1 : Math.max(enchantmentLevel, otherEnchantmentLevel);
-                            boolean compatibleWithItem = enchantment1.canEnchant(left);
+                    for (Enchantment rightEnchantment : rightEnchantments.keySet()) {
+                        if (rightEnchantment != null) {
+                            int leftEnchantmentLevel = leftEnchantments.getOrDefault(rightEnchantment, 0);
+                            int enchantmentLevel = rightEnchantments.get(rightEnchantment);
+                            enchantmentLevel = leftEnchantmentLevel == enchantmentLevel ? enchantmentLevel + 1 : Math.max(enchantmentLevel, leftEnchantmentLevel);
+                            boolean compatibleWithItem = rightEnchantment.canEnchant(left);
                             if (this.player.getAbilities().instabuild || left.is(Items.ENCHANTED_BOOK)) {
                                 compatibleWithItem = true;
                             }
 
-                            for (Enchantment enchantment : map.keySet()) {
-                                if (enchantment != enchantment1 && !enchantment1.isCompatibleWith(enchantment)) {
+                            for (Enchantment leftEnchantment : leftEnchantments.keySet()) {
+                                if (leftEnchantment != rightEnchantment && !rightEnchantment.isCompatibleWith(leftEnchantment)) {
                                     compatibleWithItem = false;
                                     ++enchantOperationCost;
                                 }
@@ -175,21 +175,21 @@ public class ModAnvilMenu extends AnvilMenu {
                             if (!compatibleWithItem) {
                                 // allow using items with just incompatible enchantments as repair material
                                 if (repairOperationCost > 0) continue;
-                                flag3 = true;
+                                itemWithIncompatibleEnchantment = true;
                             } else {
-                                flag2 = true;
-                                if (enchantmentLevel > enchantment1.getMaxLevel()) {
-                                    enchantmentLevel = enchantment1.getMaxLevel();
+                                itemWithCompatibleEnchantment = true;
+                                if (enchantmentLevel > rightEnchantment.getMaxLevel()) {
+                                    enchantmentLevel = rightEnchantment.getMaxLevel();
                                 }
 
                                 // prevent a level higher than max level from being lowered to max value
-                                int maxLevel = Math.max(map.getOrDefault(enchantment1, 0), map1.get(enchantment1));
+                                int maxLevel = Math.max(leftEnchantments.getOrDefault(rightEnchantment, 0), rightEnchantments.get(rightEnchantment));
                                 maxLevel = Math.max(maxLevel, enchantmentLevel);
                                 if (maxLevel != enchantmentLevel) {
                                     enchantmentLevel = maxLevel;
                                 }
 
-                                int rarityCostMultiplier = switch (enchantment1.getRarity()) {
+                                int rarityCostMultiplier = switch (rightEnchantment.getRarity()) {
                                     case COMMON -> EasyAnvils.CONFIG.get(ServerConfig.class).costs.commonEnchantmentMultiplier;
                                     case UNCOMMON -> EasyAnvils.CONFIG.get(ServerConfig.class).costs.uncommonEnchantmentMultiplier;
                                     case RARE -> EasyAnvils.CONFIG.get(ServerConfig.class).costs.rareEnchantmentMultiplier;
@@ -201,7 +201,7 @@ public class ModAnvilMenu extends AnvilMenu {
                                 }
 
                                 // don't increase repair cost when an enchantment is already present and the level does not change (already at max level probably)
-                                Integer oldEnchantmentLevel = map.put(enchantment1, enchantmentLevel);
+                                Integer oldEnchantmentLevel = leftEnchantments.put(rightEnchantment, enchantmentLevel);
                                 if (oldEnchantmentLevel == null || oldEnchantmentLevel != enchantmentLevel) {
                                     enchantOperationCost += rarityCostMultiplier * enchantmentLevel;
                                 }
@@ -216,7 +216,7 @@ public class ModAnvilMenu extends AnvilMenu {
                         }
                     }
 
-                    if (flag3 && !flag2) {
+                    if (itemWithIncompatibleEnchantment && !itemWithCompatibleEnchantment) {
                         this.resultSlots.setItem(0, ItemStack.EMPTY);
                         this.setCost(0);
                         return;
@@ -227,12 +227,12 @@ public class ModAnvilMenu extends AnvilMenu {
             boolean hasRenamedItem = false;
             if (ComponentDecomposer.getStringLength(itemName) == 0) {
                 if (left.hasCustomHoverName()) {
-                    renameOperationCost = EasyAnvils.CONFIG.get(ServerConfig.class).freeRenames.filter.test(left) ? 0 : 1;
+                    renameOperationCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(left) ? 0 : 1;
                     hasRenamedItem = true;
                     output.resetHoverName();
                 }
             } else if (!itemName.equals(ComponentDecomposer.toFormattedString(left.getHoverName()))) {
-                renameOperationCost = EasyAnvils.CONFIG.get(ServerConfig.class).freeRenames.filter.test(left) ? 0 : 1;
+                renameOperationCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(left) ? 0 : 1;
                 hasRenamedItem = true;
                 output.setHoverName(ComponentDecomposer.toFormattedComponent(itemName));
             }
@@ -248,19 +248,19 @@ public class ModAnvilMenu extends AnvilMenu {
                 if (!hasRenamedItem) {
                     output = ItemStack.EMPTY;
                 }
-            } else if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).renameAndRepairCosts == ServerConfig.RenameAndRepairCost.FIXED) {
+            } else if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts == ServerConfig.RenameAndRepairCost.FIXED) {
                 this.setCost(allOperationsCost);
             } else {
                 this.setCost(baseRepairCost + allOperationsCost);
             }
 
-            int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).tooExpensiveLimit;
+            int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.tooExpensiveLimit;
             boolean hasNoLimit = maxAnvilRepairCost == -1;
             // we have removed the max repair limit, so just use the vanilla limit here
             if (hasNoLimit) maxAnvilRepairCost = 40;
             if (this.getCost() >= maxAnvilRepairCost) {
 
-                if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).renameAndRepairCosts == ServerConfig.RenameAndRepairCost.LIMITED) {
+                if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts == ServerConfig.RenameAndRepairCost.LIMITED) {
                     this.setCost(maxAnvilRepairCost - 1);
                 } else if (!hasNoLimit && !this.player.getAbilities().instabuild) {
                     // allow for custom max enchantment levels limit
@@ -269,20 +269,25 @@ public class ModAnvilMenu extends AnvilMenu {
             }
 
             if (!output.isEmpty()) {
+
                 int outputRepairCost = output.getBaseRepairCost();
                 if (!right.isEmpty() && outputRepairCost < right.getBaseRepairCost()) {
                     outputRepairCost = right.getBaseRepairCost();
                 }
 
-                if (allOperationsCost > 0 && (enchantOperationCost > 0 || !EasyAnvils.CONFIG.get(ServerConfig.class).penaltyFreeRenamesAndRepairs)) {
-                    outputRepairCost = AnvilMenu.calculateIncreasedRepairCost(outputRepairCost);
+                if (allOperationsCost > 0) {
+                    if (enchantOperationCost > 0 && (!isBook || !left.is(Items.ENCHANTED_BOOK) || !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeEnchantsForBooks) ||
+                            !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeRenamesAndRepairs) {
+                        outputRepairCost = AnvilMenu.calculateIncreasedRepairCost(outputRepairCost);
+                    }
                 }
 
                 // don't add tag when there is no repair cost
                 if (outputRepairCost > 0) {
                     output.setRepairCost(outputRepairCost);
                 }
-                EnchantmentHelper.setEnchantments(map, output);
+
+                EnchantmentHelper.setEnchantments(leftEnchantments, output);
             }
 
             this.resultSlots.setItem(0, output);
@@ -327,15 +332,5 @@ public class ModAnvilMenu extends AnvilMenu {
         } else {
             itemStack.setHoverName(component);
         }
-    }
-
-    public static int repairCostToRepairs(int repairCost) {
-        repairCost++;
-        int repairs = 0;
-        while (repairCost >= 2) {
-            repairCost /= 2;
-            repairs++;
-        }
-        return repairs;
     }
 }

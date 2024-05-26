@@ -2,7 +2,6 @@ package fuzs.easyanvils.neoforge;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.data.ModBlockTagsProvider;
-import fuzs.easyanvils.data.client.ModLanguageProvider;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;
@@ -19,7 +18,7 @@ public class EasyAnvilsNeoForge {
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
         ModConstructor.construct(EasyAnvils.MOD_ID, EasyAnvils::new);
-        DataProviderHelper.registerDataProviders(EasyAnvils.MOD_ID, ModLanguageProvider::new, ModBlockTagsProvider::new);
+        DataProviderHelper.registerDataProviders(EasyAnvils.MOD_ID, ModBlockTagsProvider::new);
     }
 
     @SubscribeEvent

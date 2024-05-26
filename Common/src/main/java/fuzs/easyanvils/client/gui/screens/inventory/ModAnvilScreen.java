@@ -31,7 +31,7 @@ public class ModAnvilScreen extends AnvilScreen {
     protected void subInit() {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        if (EasyAnvils.CONFIG.get(ServerConfig.class).renamingSupportsFormatting) {
+        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
             this.name = new FormattableEditBox(this.font, i + 62, j + 24, 103, 12, AnvilBlockEntity.REPAIR_COMPONENT);
         } else {
             this.name = new EditBox(this.font, i + 62, j + 24, 103, 12, AnvilBlockEntity.REPAIR_COMPONENT);
@@ -90,7 +90,7 @@ public class ModAnvilScreen extends AnvilScreen {
             int j = 8453920;
             Component component;
             // allow for custom max repair cost
-            int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).tooExpensiveLimit;
+            int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.tooExpensiveLimit;
             if ((maxAnvilRepairCost != -1 && i >= maxAnvilRepairCost || i == -1) && !this.minecraft.player.getAbilities().instabuild) {
                 component = TOO_EXPENSIVE_TEXT;
                 j = 16736352;

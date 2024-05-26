@@ -46,7 +46,7 @@ public class NameTagEditScreen extends Screen {
             EasyAnvils.NETWORK.sendToServer(new C2SNameTagUpdateMessage(this.hand, this.itemName));
             this.onClose();
         }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
-        if (EasyAnvils.CONFIG.get(ServerConfig.class).renamingSupportsFormatting) {
+        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
             this.name = new FormattableEditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
         } else {
             this.name = new EditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
