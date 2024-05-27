@@ -47,13 +47,14 @@ public class ModAnvilMenu extends AnvilMenu {
         this.container = blockEntity;
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, containerLevelAccess);
         this.vanillaAnvilState = new VanillaAnvilMenu(inventory, containerLevelAccess);
-        this.initializeInputSlots(blockEntity);
+        this.initializeSlots(blockEntity);
         this.createResult();
     }
 
-    private void initializeInputSlots(AnvilBlockEntity blockEntity) {
+    private void initializeSlots(AnvilBlockEntity blockEntity) {
         ((SimpleContainer) this.inputSlots).items = blockEntity.getItems();
         ((SimpleContainer) this.inputSlots).addListener($ -> blockEntity.setChanged());
+        this.resultSlots.itemStacks = blockEntity.getResult();
     }
 
     @Override

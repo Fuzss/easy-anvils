@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
 public class AnvilBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, ContainerImpl {
     public static final MutableComponent REPAIR_COMPONENT = Component.translatable("container.repair");
 
-    private final NonNullList<ItemStack> inventory = NonNullList.withSize(2, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(2, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> result = NonNullList.withSize(1, ItemStack.EMPTY);
 
     public AnvilBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE.value(), blockPos, blockState);
@@ -34,14 +35,14 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     @Override
     public void load(CompoundTag nbt) {
         super.load(nbt);
-        this.inventory.clear();
-        ContainerHelper.loadAllItems(nbt, this.inventory);
+        this.items.clear();
+        ContainerHelper.loadAllItems(nbt, this.items);
     }
 
     @Override
     protected void saveAdditional(CompoundTag compoundTag) {
         super.saveAdditional(compoundTag);
-        ContainerHelper.saveAllItems(compoundTag, this.inventory, true);
+        ContainerHelper.saveAllItems(compoundTag, this.items, true);
     }
 
     @Override
@@ -65,7 +66,7 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
 
     @Override
     public NonNullList<ItemStack> getItems() {
-        return this.inventory;
+        return this.items;
     }
 
     @Override
@@ -96,5 +97,9 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     @Override
     protected AbstractContainerMenu createMenu(int id, Inventory playerInventory) {
         return new ModAnvilMenu(id, playerInventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
+    }
+
+    public NonNullList<ItemStack> getResult() {
+        return this.result;
     }
 }
