@@ -41,10 +41,9 @@ public class BlockModelHandler {
         }
     }
 
-    public static EventResultHolder<UnbakedModel> onModifyUnbakedModel(ModelResourceLocation modelLocation, Supplier<UnbakedModel> unbakedModel, Function<ResourceLocation, UnbakedModel> modelGetter, BiConsumer<ResourceLocation, UnbakedModel> modelAdder) {
+    public static EventResultHolder<UnbakedModel> onModifyUnbakedModel(ModelResourceLocation modelLocation, Supplier<UnbakedModel> unbakedModel, Function<ModelResourceLocation, UnbakedModel> modelGetter, BiConsumer<ResourceLocation, UnbakedModel> modelAdder) {
         if (MODEL_LOCATIONS.get().containsKey(modelLocation)) {
-            ResourceLocation resourceLocation = MODEL_LOCATIONS.get().get(modelLocation).id().withPrefix("block/");
-            return EventResultHolder.interrupt(modelGetter.apply(resourceLocation));
+            return EventResultHolder.interrupt(modelGetter.apply(MODEL_LOCATIONS.get().get(modelLocation)));
         } else {
             return EventResultHolder.pass();
         }

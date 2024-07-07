@@ -2,7 +2,6 @@ package fuzs.easyanvils.world.level.block.entity;
 
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.world.inventory.ModAnvilMenu;
-import fuzs.puzzleslib.api.container.v1.ContainerImpl;
 import fuzs.puzzleslib.api.container.v1.ContainerItemHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,7 +23,7 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class AnvilBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, ContainerImpl {
+public class AnvilBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
     public static final MutableComponent REPAIR_COMPONENT = Component.translatable("container.repair");
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(2, ItemStack.EMPTY);
@@ -59,6 +58,11 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     }
 
     @Override
+    public int getContainerSize() {
+        return this.items.size();
+    }
+
+    @Override
     public void setChanged() {
         super.setChanged();
         if (this.level != null) {
@@ -82,17 +86,17 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     }
 
     @Override
-    public int[] getSlotsForFace(Direction side) {
-        return side != Direction.DOWN ? new int[]{0, 1} : new int[0];
+    public int[] getSlotsForFace(Direction direction) {
+        return direction != Direction.DOWN ? new int[]{0, 1} : new int[0];
     }
 
     @Override
-    public boolean canPlaceItemThroughFace(int index, ItemStack itemStackIn, @Nullable Direction direction) {
-        return this.canPlaceItem(index, itemStackIn);
+    public boolean canPlaceItemThroughFace(int index, ItemStack itemStack, @Nullable Direction direction) {
+        return this.canPlaceItem(index, itemStack);
     }
 
     @Override
-    public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
+    public boolean canTakeItemThroughFace(int index, ItemStack itemStack, Direction direction) {
         return false;
     }
 
@@ -102,8 +106,8 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     }
 
     @Override
-    protected AbstractContainerMenu createMenu(int id, Inventory playerInventory) {
-        return new ModAnvilMenu(id, playerInventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
+    protected AbstractContainerMenu createMenu(int id, Inventory inventory) {
+        return new ModAnvilMenu(id, inventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
     }
 
     public NonNullList<ItemStack> getResult() {
