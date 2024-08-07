@@ -1,13 +1,7 @@
 package fuzs.easyanvils.config;
 
-import fuzs.easyanvils.EasyAnvils;
 import fuzs.puzzleslib.api.config.v3.Config;
 import fuzs.puzzleslib.api.config.v3.ConfigCore;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-
-import java.util.function.IntUnaryOperator;
-import java.util.function.Predicate;
 
 public class ServerConfig implements ConfigCore {
     @Config
@@ -37,17 +31,6 @@ public class ServerConfig implements ConfigCore {
         public int tooExpensiveLimit = -1;
         @Config(description = "Renaming any item in an anvil no longer costs any enchantment levels at all. Can be restricted to only name tags.")
         public FreeRenames freeRenames = FreeRenames.ALL_ITEMS;
-        @Config(description = "Multiplier for each level of a common enchantment being applied.")
-        public int commonEnchantmentMultiplier = 1;
-        @Config(description = "Multiplier for each level of a uncommon enchantment being applied.")
-        @Config.IntRange(min = 1)
-        public int uncommonEnchantmentMultiplier = 2;
-        @Config(description = "Multiplier for each level of a rare enchantment being applied.")
-        @Config.IntRange(min = 1)
-        public int rareEnchantmentMultiplier = 4;
-        @Config(description = "Multiplier for each level of a very rare enchantment being applied.")
-        @Config.IntRange(min = 1)
-        public int veryRareEnchantmentMultiplier = 8;
         @Config(description = "Costs for applying enchantments from enchanted books are halved.")
         public boolean halvedBookCosts = true;
         @Config(description = "The additional cost in levels for each valid repair material an item is repaired with.")
@@ -74,57 +57,11 @@ public class ServerConfig implements ConfigCore {
         public double anvilBreakChance = 0.05;
         @Config(description = "Solely renaming items in an anvil will never cause the anvil to break.")
         public boolean riskFreeAnvilRenaming = true;
-        @Config(description = {"The naming field in anvils and the name tag gui will support formatting codes for setting custom text colors and styles.", "Check out the Minecraft Wiki for all available formatting codes and their usage: https://minecraft.fandom.com/wiki/Formatting_codes#Usage"})
+        @Config(description = "The naming field in anvils and the name tag gui will support formatting codes for setting custom text colors and styles.")
         public boolean renamingSupportsFormatting = true;
         @Config(description = "Mobs that have a custom name drop a name tag with that name on death.")
         public boolean nameTagsDropFromMobs = false;
         @Config(description = "Leftover vanilla anvils in a world become unusable until they are broken and replaced.")
         public boolean disableVanillaAnvil = true;
-    }
-    
-    public enum RenameAndRepairCost {
-        VANILLA, FIXED, LIMITED
-    }
-
-    public enum FreeRenames {
-        NEVER(itemStack -> false),
-        ALL_ITEMS(itemStack -> true),
-        NAME_TAGS_ONLY(itemStack -> itemStack.is(Items.NAME_TAG));
-
-        public final Predicate<ItemStack> filter;
-
-        FreeRenames(Predicate<ItemStack> filter) {
-            this.filter = filter;
-        }
-    }
-
-    public enum PriorWorkPenalty {
-        NONE(itemRepairCost -> 0),
-        VANILLA(IntUnaryOperator.identity()),
-        LIMITED(itemRepairCost -> limitedRepairCost(repairCostToRepairs(itemRepairCost)));
-
-        public final IntUnaryOperator operator;
-
-        PriorWorkPenalty(IntUnaryOperator operator) {
-            this.operator = operator;
-        }
-
-        static int repairCostToRepairs(int itemRepairCost) {
-            itemRepairCost++;
-            int priorRepairs = 0;
-            while (itemRepairCost >= 2) {
-                itemRepairCost /= 2;
-                priorRepairs++;
-            }
-            return priorRepairs;
-        }
-
-        static int limitedRepairCost(int priorRepairs) {
-            int itemRepairCost = 0;
-            for (int i = 0; i < priorRepairs; i++) {
-                itemRepairCost += Math.min(itemRepairCost + 1, EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.maximumPriorWorkPenaltyIncrease);
-            }
-            return itemRepairCost;
-        }
     }
 }

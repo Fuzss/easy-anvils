@@ -67,9 +67,7 @@ public class BlockConversionHandler {
                 setBlockForItem(blockItem, block);
             }
         }
-        if (!client) {
-            BLOCK_CONVERSIONS.forEach(BlockConversionHelper::copyBoundTags);
-        }
+        BLOCK_CONVERSIONS.forEach(BlockConversionHelper::copyBoundTags);
     }
 
     private static void setItemForBlock(ResourceLocation resourceLocation, BlockItem blockItem, Block block) {

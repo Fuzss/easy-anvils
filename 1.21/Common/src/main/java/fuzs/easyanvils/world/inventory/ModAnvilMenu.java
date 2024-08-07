@@ -1,6 +1,7 @@
 package fuzs.easyanvils.world.inventory;
 
 import fuzs.easyanvils.EasyAnvils;
+import fuzs.easyanvils.config.RenameAndRepairCost;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.util.ComponentDecomposer;
@@ -244,7 +245,7 @@ public class ModAnvilMenu extends AnvilMenu {
                 if (!hasRenamedItem) {
                     output = ItemStack.EMPTY;
                 }
-            } else if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts == ServerConfig.RenameAndRepairCost.FIXED) {
+            } else if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts == RenameAndRepairCost.FIXED) {
                 this.setCost(allOperationsCost);
             } else {
                 this.setCost(baseRepairCost + allOperationsCost);
@@ -256,7 +257,7 @@ public class ModAnvilMenu extends AnvilMenu {
             if (hasNoLimit) maxAnvilRepairCost = 40;
             if (this.getCost() >= maxAnvilRepairCost) {
 
-                if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts == ServerConfig.RenameAndRepairCost.LIMITED) {
+                if (enchantOperationCost == 0 && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts == RenameAndRepairCost.LIMITED) {
                     this.setCost(maxAnvilRepairCost - 1);
                 } else if (!hasNoLimit && !this.player.getAbilities().instabuild) {
                     // allow for custom max enchantment levels limit
