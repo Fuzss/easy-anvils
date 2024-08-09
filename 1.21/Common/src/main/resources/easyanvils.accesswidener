@@ -27,8 +27,6 @@ mutable field   net/minecraft/world/inventory/ItemCombinerMenu  access Lnet/mine
 accessible  field   net/minecraft/world/inventory/AnvilMenu itemName    Ljava/lang/String;
 accessible  field   net/minecraft/world/inventory/AnvilMenu repairItemCountCost I
 accessible  field   net/minecraft/world/inventory/AnvilMenu cost    Lnet/minecraft/world/inventory/DataSlot;
-accessible  field   net/minecraft/world/level/block/entity/BlockEntityType$Builder  validBlocks Ljava/util/Set;
-mutable field   net/minecraft/world/level/block/entity/BlockEntityType$Builder  validBlocks Ljava/util/Set;
 accessible  field   net/minecraft/world/SimpleContainer items  Lnet/minecraft/core/NonNullList;
 mutable field   net/minecraft/world/SimpleContainer items  Lnet/minecraft/core/NonNullList;
 accessible  field   net/minecraft/world/inventory/ResultContainer   itemStacks  Lnet/minecraft/core/NonNullList;

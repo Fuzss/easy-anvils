@@ -2,7 +2,7 @@ package fuzs.easyanvils.world.level.block.entity;
 
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.world.inventory.ModAnvilMenu;
-import fuzs.puzzleslib.api.container.v1.ContainerItemHelper;
+import fuzs.puzzleslib.api.container.v1.ContainerMenuHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -77,7 +77,7 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
 
     @Override
     protected void setItems(NonNullList<ItemStack> items) {
-        ContainerItemHelper.copyItemsToContainer(this, items);
+        ContainerMenuHelper.copyItemsIntoContainer(items, this);
     }
 
     @Override

@@ -16,6 +16,7 @@ import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
+import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventPhase;
 import fuzs.puzzleslib.api.event.v1.entity.living.LivingDropsCallback;
@@ -68,6 +69,7 @@ public class EasyAnvils implements ModConstructor {
         AnvilEvents.USE.register(ItemInteractionHandler::onAnvilUse);
         RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK)
                 .register(BlockConversionHandler::onRegistryEntryAdded);
+        AddBlockEntityTypeBlocksCallback.EVENT.register(BlockConversionHandler::onAddBlockEntityTypeBlocks);
         PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler::onUseBlock);
         TagsUpdatedCallback.EVENT.register(EventPhase.FIRST, BlockConversionHandler::onTagsUpdated);
         LivingDropsCallback.EVENT.register(NameTagDropHandler::onLivingDrops);
@@ -106,8 +108,7 @@ public class EasyAnvils implements ModConstructor {
     public void onAddDataPackFinders(PackRepositorySourcesContext context) {
         if (!CONFIG.get(CommonConfig.class).nameTagCraftingRecipe) return;
         context.addRepositorySource(PackResourcesHelper.buildServerPack(id("name_tag_recipe"),
-                DynamicPackResources.create(DynamicRecipeProvider::new),
-                true
+                DynamicPackResources.create(DynamicRecipeProvider::new), true
         ));
     }
 
