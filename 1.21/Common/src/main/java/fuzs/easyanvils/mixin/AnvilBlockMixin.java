@@ -19,11 +19,11 @@ abstract class AnvilBlockMixin extends FallingBlock {
 
     @ModifyVariable(method = "damage", at = @At("HEAD"))
     private static BlockState damage$0(BlockState blockState) {
-        return BlockConversionHandler.convertReplacementToOriginal(blockState);
+        return BlockConversionHandler.convertToVanillaBlock(blockState);
     }
 
     @ModifyReturnValue(method = "damage", at = @At("RETURN"))
     private static BlockState damage$1(BlockState blockState) {
-        return BlockConversionHandler.convertOriginalToReplacement(blockState);
+        return BlockConversionHandler.convertFromVanillaBlock(blockState);
     }
 }

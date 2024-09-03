@@ -23,7 +23,7 @@ public class DynamicModelProvider extends AbstractModelProvider {
         // dynamically generate a basic stone block model for every diagonal block so the model bakery logs no missing model
         // don't use an air model so the blocks remain visible
         ResourceLocation resourceLocation = ModelLocationUtils.getModelLocation(Blocks.STONE);
-        BlockConversionHandler.BLOCK_CONVERSIONS.values().forEach((Block block) -> {
+        BlockConversionHandler.getBlockConversions().values().forEach((Block block) -> {
             builder.blockStateOutput.accept(MultiVariantGenerator.multiVariant(block, Variant.variant().with(VariantProperties.MODEL, resourceLocation)));
             builder.skipAutoItemBlock(block);
         });

@@ -61,7 +61,5 @@ public class ServerConfig implements ConfigCore {
         public boolean renamingSupportsFormatting = true;
         @Config(description = "Mobs that have a custom name drop a name tag with that name on death.")
         public boolean nameTagsDropFromMobs = false;
-        @Config(description = "Leftover vanilla anvils in a world become unusable until they are broken and replaced.")
-        public boolean disableVanillaAnvil = true;
     }
 }

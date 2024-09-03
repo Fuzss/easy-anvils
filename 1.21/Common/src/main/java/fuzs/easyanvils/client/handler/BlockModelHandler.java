@@ -27,15 +27,15 @@ public class BlockModelHandler {
 
     static {
         MODEL_LOCATIONS = Suppliers.memoize(() -> {
-            return BlockConversionHandler.BLOCK_CONVERSIONS.inverse().entrySet().stream().flatMap(entry -> {
-                return convertAllBlockStates(entry.getKey(), entry.getValue()).entrySet().stream();
+            return BlockConversionHandler.getBlockConversions().entrySet().stream().flatMap(entry -> {
+                return convertAllBlockStates(entry.getValue(), entry.getKey()).entrySet().stream();
             }).collect(Util.toMap());
         });
     }
 
     public static void onLoadComplete() {
         // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
-        for (Map.Entry<Block, Block> entry : BlockConversionHandler.BLOCK_CONVERSIONS.entrySet()) {
+        for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
             RenderType renderType = ClientAbstractions.INSTANCE.getRenderType(entry.getKey());
             ClientAbstractions.INSTANCE.registerRenderType(entry.getValue(), renderType);
         }

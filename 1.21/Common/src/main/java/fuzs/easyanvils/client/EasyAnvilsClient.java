@@ -21,13 +21,13 @@ public class EasyAnvilsClient implements ClientModConstructor {
 
     @Override
     public void onConstructMod() {
-        registerHandlers();
+        registerEventHandlers();
     }
 
-    private static void registerHandlers() {
+    private static void registerEventHandlers() {
         ModelEvents.MODIFY_UNBAKED_MODEL.register(BlockModelHandler::onModifyUnbakedModel);
-        ItemTooltipCallback.EVENT.register(NameTagTooltipHandler::onItemTooltip);
         LoadCompleteCallback.EVENT.register(BlockModelHandler::onLoadComplete);
+        ItemTooltipCallback.EVENT.register(NameTagTooltipHandler::onItemTooltip);
     }
 
     @Override
@@ -42,6 +42,8 @@ public class EasyAnvilsClient implements ClientModConstructor {
 
     @Override
     public void onAddResourcePackFinders(PackRepositorySourcesContext context) {
-        context.addRepositorySource(PackResourcesHelper.buildClientPack(EasyAnvils.id("default_block_models"), DynamicPackResources.create(DynamicModelProvider::new), true));
+        context.addRepositorySource(PackResourcesHelper.buildClientPack(EasyAnvils.id("default_block_models"),
+                DynamicPackResources.create(DynamicModelProvider::new), true
+        ));
     }
 }

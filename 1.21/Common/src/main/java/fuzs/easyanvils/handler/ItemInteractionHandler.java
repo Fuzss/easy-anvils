@@ -66,7 +66,7 @@ public class ItemInteractionHandler {
 
     @Nullable
     private static BlockState getRepairedState(BlockState oldBlockState) {
-        oldBlockState = BlockConversionHandler.convertReplacementToOriginal(oldBlockState);
+        oldBlockState = BlockConversionHandler.convertToVanillaBlock(oldBlockState);
         BlockState newBlockState;
         if (oldBlockState.is(Blocks.DAMAGED_ANVIL)) {
             newBlockState = Blocks.CHIPPED_ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, oldBlockState.getValue(AnvilBlock.FACING));
@@ -75,7 +75,7 @@ public class ItemInteractionHandler {
         } else {
             return null;
         }
-        return BlockConversionHandler.convertOriginalToReplacement(newBlockState);
+        return BlockConversionHandler.convertFromVanillaBlock(newBlockState);
     }
 
     public static void onAnvilUse(Player player, ItemStack left, ItemStack right, ItemStack output, MutableFloat breakChance) {

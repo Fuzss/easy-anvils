@@ -12,6 +12,7 @@ import fuzs.easyanvils.network.S2CAnvilRepairMessage;
 import fuzs.easyanvils.network.S2COpenNameTagEditorMessage;
 import fuzs.easyanvils.network.client.C2SNameTagUpdateMessage;
 import fuzs.easyanvils.network.client.C2SRenameItemMessage;
+import fuzs.easyanvils.world.level.block.AnvilWithInventoryBlock;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
@@ -36,10 +37,14 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AnvilBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Predicate;
 
 public class EasyAnvils implements ModConstructor {
     public static final String MOD_ID = "easyanvils";
@@ -56,6 +61,9 @@ public class EasyAnvils implements ModConstructor {
             .client(ClientConfig.class)
             .common(CommonConfig.class)
             .server(ServerConfig.class);
+    public static final Predicate<Block> BLOCK_PREDICATE = (Block block) -> {
+        return block instanceof AnvilBlock && !(block instanceof AnvilWithInventoryBlock);
+    };
 
     @Override
     public void onConstructMod() {
@@ -64,14 +72,22 @@ public class EasyAnvils implements ModConstructor {
     }
 
     private static void registerEventHandlers() {
+        RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK)
+                .register(BlockConversionHandler.onRegistryEntryAdded(BLOCK_PREDICATE, AnvilWithInventoryBlock::new,
+                        MOD_ID
+                ));
+        AddBlockEntityTypeBlocksCallback.EVENT.register(
+                BlockConversionHandler.onAddBlockEntityTypeBlocks(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE));
+        PlayerInteractEvents.USE_BLOCK.register(
+                BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
+                        () -> CONFIG.get(CommonConfig.class).disableVanillaAnvil
+                ));
+        TagsUpdatedCallback.EVENT.register(EventPhase.FIRST,
+                BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, BLOCK_PREDICATE)
+        );
         PlayerInteractEvents.USE_ITEM.register(ItemInteractionHandler::onUseItem);
         PlayerInteractEvents.USE_BLOCK.register(ItemInteractionHandler::onUseBlock);
         AnvilEvents.USE.register(ItemInteractionHandler::onAnvilUse);
-        RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK)
-                .register(BlockConversionHandler::onRegistryEntryAdded);
-        AddBlockEntityTypeBlocksCallback.EVENT.register(BlockConversionHandler::onAddBlockEntityTypeBlocks);
-        PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler::onUseBlock);
-        TagsUpdatedCallback.EVENT.register(EventPhase.FIRST, BlockConversionHandler::onTagsUpdated);
         LivingDropsCallback.EVENT.register(NameTagDropHandler::onLivingDrops);
     }
 
