@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -34,7 +35,7 @@ public class NameTagEditScreen extends Screen {
     private EditBox name;
 
     public NameTagEditScreen(InteractionHand hand, Component title) {
-        super(Component.translatable(KEY_NAME_TAG_EDIT, Items.NAME_TAG.getDescription()));
+        super(Component.translatable(KEY_NAME_TAG_EDIT, Items.NAME_TAG.getName()));
         this.hand = hand;
         this.itemName = ComponentDecomposer.toFormattedString(title);
     }
@@ -44,13 +45,24 @@ public class NameTagEditScreen extends Screen {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = this.height / 4;
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (Button button) -> {
-            EasyAnvils.NETWORK.sendToServer(new C2SNameTagUpdateMessage(this.hand, this.itemName).toServerboundMessage());
+            EasyAnvils.NETWORK.sendMessage(new C2SNameTagUpdateMessage(this.hand,
+                    this.itemName).toServerboundMessage());
             this.onClose();
         }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build());
         if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
-            this.name = new FormattableEditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
+            this.name = new FormattableEditBox(this.font,
+                    this.leftPos + 62,
+                    this.topPos + 26,
+                    103,
+                    12,
+                    Component.translatable("container.repair"));
         } else {
-            this.name = new EditBox(this.font, this.leftPos + 62, this.topPos + 26, 103, 12, Component.translatable("container.repair"));
+            this.name = new EditBox(this.font,
+                    this.leftPos + 62,
+                    this.topPos + 26,
+                    103,
+                    12,
+                    Component.translatable("container.repair"));
         }
         this.name.setCanLoseFocus(false);
         this.name.setTextColor(-1);
@@ -63,7 +75,9 @@ public class NameTagEditScreen extends Screen {
         this.name.setValue(this.itemName);
         this.addWidget(this.name);
         this.setInitialFocus(this.name);
-        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7, this.topPos + this.titleLabelY, this.font));
+        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7,
+                this.topPos + this.titleLabelY,
+                this.font));
     }
 
     @Override
@@ -76,7 +90,12 @@ public class NameTagEditScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawString(this.font, this.title, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, 4210752, false);
+        guiGraphics.drawString(this.font,
+                this.title,
+                this.leftPos + this.titleLabelX,
+                this.topPos + this.titleLabelY,
+                4210752,
+                false);
         this.name.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
@@ -84,7 +103,7 @@ public class NameTagEditScreen extends Screen {
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        guiGraphics.blit(EDIT_NAME_TAG_LOCATION, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(RenderType::guiTextured, EDIT_NAME_TAG_LOCATION, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(2.0F, 2.0F, 2.0F);
         guiGraphics.renderItem(new ItemStack(Items.NAME_TAG), (this.leftPos + 17) / 2, (this.topPos + 8) / 2);

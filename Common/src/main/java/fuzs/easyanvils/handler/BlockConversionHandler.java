@@ -12,23 +12,24 @@ import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
 import fuzs.puzzleslib.api.init.v3.registry.RegistryHelper;
+import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
@@ -40,16 +41,19 @@ import java.util.function.*;
 public class BlockConversionHandler {
     public static final Component INVALID_BLOCK_COMPONENT = Component.translatable("container.invalidBlock");
     private static final BiMap<Block, Block> BLOCK_CONVERSIONS = HashBiMap.create();
-    private static final Map<BlockState, BlockState> BLOCK_STATE_CONVERSIONS_CACHE = new MapMaker().weakKeys().weakValues().makeMap();
+    private static final Map<BlockState, BlockState> BLOCK_STATE_CONVERSIONS_CACHE = new MapMaker().weakKeys()
+            .weakValues()
+            .makeMap();
 
-    public static RegistryEntryAddedCallback<Block> onRegistryEntryAdded(Predicate<Block> filter, UnaryOperator<Block> factory, String modId) {
+    public static RegistryEntryAddedCallback<Block> onRegistryEntryAdded(Predicate<Block> filter, Function<BlockBehaviour.Properties, Block> factory, String modId) {
         return (Registry<Block> registry, ResourceLocation id, Block block, BiConsumer<ResourceLocation, Supplier<Block>> registrar) -> {
             if (filter.test(block)) {
                 ResourceLocation resourceLocation = ResourceLocationHelper.fromNamespaceAndPath(modId,
-                        id.getNamespace() + "/" + id.getPath()
-                );
+                        id.getNamespace() + "/" + id.getPath());
                 registrar.accept(resourceLocation, () -> {
-                    Block newBlock = factory.apply(block);
+                    BlockBehaviour.Properties properties = BlockConversionHelper.copyBlockProperties(block,
+                            resourceLocation);
+                    Block newBlock = factory.apply(properties);
                     BLOCK_CONVERSIONS.put(block, newBlock);
                     return newBlock;
                 });
@@ -74,9 +78,10 @@ public class BlockConversionHandler {
             if (!disableVanillaBlock.getAsBoolean()) return EventResultHolder.pass();
             BlockState blockState = level.getBlockState(hitResult.getBlockPos());
             if (BLOCK_CONVERSIONS.containsKey(blockState.getBlock()) && !blockState.is(unalteredBlocks)) {
-                player.displayClientMessage(
-                        Component.empty().append(INVALID_BLOCK_COMPONENT).withStyle(ChatFormatting.RED), true);
-                return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));
+                player.displayClientMessage(Component.empty()
+                        .append(INVALID_BLOCK_COMPONENT)
+                        .withStyle(ChatFormatting.RED), true);
+                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
             } else {
                 return EventResultHolder.pass();
             }
@@ -84,7 +89,7 @@ public class BlockConversionHandler {
     }
 
     public static TagsUpdatedCallback onTagsUpdated(TagKey<Block> unalteredBlocks, Predicate<Block> filter) {
-        return (RegistryAccess registryAccess, boolean client) -> {
+        return (HolderLookup.Provider registries, boolean client) -> {
             for (Map.Entry<ResourceKey<Item>, Item> entry : BuiltInRegistries.ITEM.entrySet()) {
                 if (entry.getValue() instanceof BlockItem blockItem) {
                     Block block = blockItem.getBlock();

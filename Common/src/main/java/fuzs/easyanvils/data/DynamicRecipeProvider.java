@@ -15,13 +15,13 @@ public class DynamicRecipeProvider extends AbstractRecipeProvider {
 
     @Override
     public void addRecipes(RecipeOutput recipeOutput) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, Items.NAME_TAG)
+        ShapedRecipeBuilder.shaped(this.items(), RecipeCategory.TOOLS, Items.NAME_TAG)
                 .define('#', Items.STRING)
                 .define('X', Items.PAPER)
                 .pattern("  #")
                 .pattern(" X ")
                 .pattern("X  ")
-                .unlockedBy(getHasName(Items.PAPER), has(Items.PAPER))
+                .unlockedBy(getHasName(Items.PAPER), this.has(Items.PAPER))
                 .save(recipeOutput);
     }
 }

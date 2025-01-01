@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AnvilBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,16 +18,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class AnvilWithInventoryBlock extends AnvilBlock implements EntityBlock {
-    private final Block block;
 
-    public AnvilWithInventoryBlock(Block block) {
-        super(Properties.ofFullCopy(block).dropsLike(block));
-        this.block = block;
-    }
-
-    @Override
-    public String getDescriptionId() {
-        return this.block.getDescriptionId();
+    public AnvilWithInventoryBlock(Properties properties) {
+        super(properties);
     }
 
     @Override

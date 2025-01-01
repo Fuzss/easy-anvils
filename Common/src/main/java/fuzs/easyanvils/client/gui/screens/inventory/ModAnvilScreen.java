@@ -68,7 +68,7 @@ public class ModAnvilScreen extends AnvilScreen {
         }
 
         if (this.menu.setItemName(input)) {
-            EasyAnvils.NETWORK.sendToServer(new C2SRenameItemMessage(input).toServerboundMessage());
+            EasyAnvils.NETWORK.sendMessage(new C2SRenameItemMessage(input).toServerboundMessage());
         }
     }
 

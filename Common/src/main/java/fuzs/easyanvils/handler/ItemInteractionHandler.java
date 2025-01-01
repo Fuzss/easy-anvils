@@ -6,9 +6,10 @@ import fuzs.easyanvils.network.S2CAnvilRepairMessage;
 import fuzs.easyanvils.network.S2COpenNameTagEditorMessage;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.event.v1.data.MutableFloat;
+import fuzs.puzzleslib.api.network.v3.PlayerSet;
+import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -26,12 +27,10 @@ public class ItemInteractionHandler {
 
     public static EventResultHolder<InteractionResult> onUseItem(Player player, Level level, InteractionHand hand) {
         if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) return EventResultHolder.pass();
-        ItemStack stack = player.getItemInHand(hand);
-        if (player.isShiftKeyDown() && stack.is(Items.NAME_TAG)) {
-            if (!level.isClientSide) {
-                EasyAnvils.NETWORK.sendTo((ServerPlayer) player, new S2COpenNameTagEditorMessage(hand, stack.getHoverName()).toClientboundMessage());
-            }
-            return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));
+        ItemStack itemInHand = player.getItemInHand(hand);
+        if (player.isShiftKeyDown() && itemInHand.is(Items.NAME_TAG)) {
+            EasyAnvils.NETWORK.sendMessage(PlayerSet.ofEntity(player), new S2COpenNameTagEditorMessage(hand, itemInHand.getHoverName()).toClientboundMessage());
+            return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
         }
         return EventResultHolder.pass();
     }
@@ -46,18 +45,19 @@ public class ItemInteractionHandler {
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
                 }
-                return EventResultHolder.interrupt(InteractionResult.sidedSuccess(level.isClientSide));
+                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
             }
         }
         return EventResultHolder.pass();
     }
 
-    public static boolean tryRepairAnvil(Level level, BlockPos pos, BlockState state) {
+    public static boolean tryRepairAnvil(Level level, BlockPos blockPos, BlockState state) {
         BlockState repairedState = getRepairedState(state);
         if (repairedState != null) {
-            if (!level.isClientSide) {
-                level.setBlock(pos, repairedState, 2);
-                EasyAnvils.NETWORK.sendToAllNear(pos, (ServerLevel) level, new S2CAnvilRepairMessage(pos, repairedState).toClientboundMessage());
+            if (level instanceof ServerLevel serverLevel) {
+                level.setBlock(blockPos, repairedState, 2);
+                PlayerSet playerSet = PlayerSet.nearPosition(blockPos, serverLevel);
+                EasyAnvils.NETWORK.sendMessage(playerSet, new S2CAnvilRepairMessage(blockPos, repairedState).toClientboundMessage());
             }
             return true;
         }

@@ -177,7 +177,7 @@ public class FormattableEditBox extends AdvancedEditBox {
         if (this.isVisible()) {
             if (this.isBordered()) {
                 ResourceLocation resourceLocation = SPRITES.get(this.isActive(), this.isFocused());
-                guiGraphics.blitSprite(resourceLocation, this.getX(), this.getY(), this.getWidth(), this.getHeight());
+                guiGraphics.blitSprite(RenderType::guiTextured, resourceLocation, this.getX(), this.getY(), this.getWidth(), this.getHeight());
             }
 
             int i = this.isEditable ? this.textColor : this.textColorUneditable;
