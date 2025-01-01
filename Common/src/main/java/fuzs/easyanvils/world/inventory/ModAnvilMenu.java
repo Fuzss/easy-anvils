@@ -354,7 +354,7 @@ public class ModAnvilMenu extends AnvilMenu {
     public ItemStack quickMoveStack(Player player, int index) {
         return QuickMoveRuleSet.of(this, this::moveItemStackTo)
                 .addContainerSlotRule(0, 1)
-                .addInventoryRule(true)
+                .addInventoryRule()
                 .addHotbarRule()
                 .quickMoveStack(player, index);
     }

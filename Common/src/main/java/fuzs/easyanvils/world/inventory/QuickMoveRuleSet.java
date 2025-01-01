@@ -27,12 +27,12 @@ public final class QuickMoveRuleSet {
     private final List<Rule> rules = new ArrayList<>();
     private final List<Slot> slots;
     private final Action action;
-    private final boolean isLenient;
+    private final Type type;
 
-    private QuickMoveRuleSet(AbstractContainerMenu menu, Action action, boolean isLenient) {
+    private QuickMoveRuleSet(AbstractContainerMenu menu, Action action, Type type) {
         this.slots = menu.slots;
         this.action = action;
-        this.isLenient = isLenient;
+        this.type = type;
     }
 
     /**
@@ -44,20 +44,20 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public static QuickMoveRuleSet of(AbstractContainerMenu menu, Action action) {
-        return of(menu, action, true);
+        return of(menu, action, Type.RELAXED);
     }
 
     /**
      * Creates a new rule set instance.
      *
-     * @param menu      the container menu
-     * @param action    access to the protected
-     *                  {@link AbstractContainerMenu#moveItemStackTo(ItemStack, int, int, boolean)} method
-     * @param isLenient should rules not stop applying after a match has been found
+     * @param menu   the container menu
+     * @param action access to the protected {@link AbstractContainerMenu#moveItemStackTo(ItemStack, int, int, boolean)}
+     *               method
+     * @param type   should rules not stop applying after a match has been found
      * @return the rule set
      */
-    public static QuickMoveRuleSet of(AbstractContainerMenu menu, Action action, boolean isLenient) {
-        return new QuickMoveRuleSet(menu, action, isLenient);
+    public static QuickMoveRuleSet of(AbstractContainerMenu menu, Action action, Type type) {
+        return new QuickMoveRuleSet(menu, action, type);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class QuickMoveRuleSet {
                             quickMove.startIndex(),
                             quickMove.endIndex(),
                             quickMove.reverseDirection())) {
-                        if (!this.isLenient) {
+                        if (this.type == Type.STRICT) {
                             return ItemStack.EMPTY;
                         }
                     } else {
@@ -105,7 +105,7 @@ public final class QuickMoveRuleSet {
             slot.onTake(player, itemInSlot);
         }
 
-        return this.isLenient ? ItemStack.EMPTY : itemStack;
+        return this.type == Type.RELAXED ? ItemStack.EMPTY : itemStack;
     }
 
     /**
@@ -271,5 +271,32 @@ public final class QuickMoveRuleSet {
 
     private record Rule(int startIndex, int endIndex, boolean reverseDirection, Predicate<Slot> filter) {
 
+    }
+
+    /**
+     * Controls how further attempts at moving remaining items in an item stack are made after a rule has already been
+     * applied.
+     */
+    public enum Type {
+        /**
+         * Does not skip full slots matched by a rule.
+         * <p>
+         * No further quick move attempts are made after a slot allowing the item has been found (even when there are
+         * valid slots with remaining capacity available that would be matched by later rules).
+         */
+        STRICT,
+        /**
+         * Skips full slots matched by a rule in the next quick move attempt.
+         * <p>
+         * Items can only go to slots handled by a single rule at once. The next attempt will be allowed to process
+         * slots from different rules, if the previous slots are all filled.
+         */
+        RELAXED,
+        /**
+         * Skips full slots matched by a rule in the current quick move attempt.
+         * <p>
+         * Items can be split across slots handled by multiple rules.
+         */
+        LENIENT
     }
 }
