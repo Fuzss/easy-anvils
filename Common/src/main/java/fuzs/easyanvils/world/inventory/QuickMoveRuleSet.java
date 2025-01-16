@@ -77,12 +77,12 @@ public final class QuickMoveRuleSet {
             ItemStack itemInSlot = slot.getItem();
             itemStack = itemInSlot.copy();
 
-            for (Rule quickMove : this.rules) {
-                if (quickMove.filter().test(slot)) {
+            for (Rule rule : this.rules) {
+                if (rule.filter().test(slot)) {
                     if (!this.action.moveItemStackTo(itemInSlot,
-                            quickMove.startIndex(),
-                            quickMove.endIndex(),
-                            quickMove.reverseDirection())) {
+                            rule.startIndex(),
+                            rule.endIndex(),
+                            rule.reverseDirection())) {
                         if (this.type == Type.STRICT) {
                             return ItemStack.EMPTY;
                         }
@@ -151,9 +151,8 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addContainerSlotRule(int index, boolean reverseDirection, Predicate<Slot> filter) {
-        return this.addRule(new Rule(index, index + 1, reverseDirection, (Slot slot) -> {
-            Slot slotAtIndex = this.slots.get(index);
-            return slotAtIndex.container != slot.container && slotAtIndex.mayPlace(slot.getItem()) && filter.test(slot);
+        return this.addRule(new Rule(Rule.Type.CONTAINER_SLOT, index, index + 1, reverseDirection, (Slot slot) -> {
+            return IS_INVENTORY.test(slot) && this.slots.get(index).mayPlace(slot.getItem()) && filter.test(slot);
         }));
     }
 
@@ -180,7 +179,7 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addContainerRule(int startIndex, int endIndex) {
-        return this.addRule(new Rule(startIndex, endIndex, false, (Slot slot) -> {
+        return this.addRule(new Rule(Rule.Type.CONTAINER, startIndex, endIndex, false, (Slot slot) -> {
             return slot.index >= this.getInclusiveStartIndex(IS_INVENTORY) &&
                     slot.index < this.getExclusiveEndIndex(IS_INVENTORY);
         }));
@@ -202,7 +201,8 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addInventoryRule(boolean reverseDirection) {
-        return this.addRule(new Rule(this.getInclusiveStartIndex(IS_INVENTORY),
+        return this.addRule(new Rule(Rule.Type.INVENTORY,
+                this.getInclusiveStartIndex(IS_INVENTORY),
                 this.getExclusiveEndIndex(IS_INVENTORY),
                 reverseDirection,
                 (Slot slot) -> {
@@ -219,14 +219,16 @@ public final class QuickMoveRuleSet {
      * @return the rule set
      */
     public QuickMoveRuleSet addHotbarRule() {
-        this.addRule(new Rule(this.getInclusiveStartIndex(IS_HOTBAR),
+        this.addRule(new Rule(Rule.Type.FROM_HOTBAR,
+                this.getInclusiveStartIndex(IS_HOTBAR),
                 this.getExclusiveEndIndex(IS_HOTBAR),
                 false,
                 (Slot slot) -> {
                     return slot.index >= this.getInclusiveStartIndex(IS_NOT_HOTBAR) &&
                             slot.index < this.getExclusiveEndIndex(IS_NOT_HOTBAR);
                 }));
-        return this.addRule(new Rule(this.getInclusiveStartIndex(IS_NOT_HOTBAR),
+        return this.addRule(new Rule(Rule.Type.TO_HOTBAR,
+                this.getInclusiveStartIndex(IS_NOT_HOTBAR),
                 this.getExclusiveEndIndex(IS_NOT_HOTBAR),
                 false,
                 (Slot slot) -> {
@@ -269,8 +271,15 @@ public final class QuickMoveRuleSet {
         boolean moveItemStackTo(ItemStack itemStack, int startIndex, int endIndex, boolean reverseDirection);
     }
 
-    private record Rule(int startIndex, int endIndex, boolean reverseDirection, Predicate<Slot> filter) {
+    private record Rule(Type type, int startIndex, int endIndex, boolean reverseDirection, Predicate<Slot> filter) {
 
+        enum Type {
+            CONTAINER_SLOT,
+            CONTAINER,
+            INVENTORY,
+            FROM_HOTBAR,
+            TO_HOTBAR
+        }
     }
 
     /**
