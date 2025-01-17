@@ -17,11 +17,16 @@ import java.util.function.Predicate;
  * <p>
  * Note that the order of individual matters, as the rules are tested using the original registration order.
  */
+@Deprecated(forRemoval = true)
 public final class QuickMoveRuleSet {
     private static final Predicate<Slot> IS_INVENTORY = (Slot slot) -> slot.container instanceof Inventory;
-    private static final Predicate<Slot> IS_HOTBAR = (Slot slot) -> IS_INVENTORY.test(slot) &&
+    private static final Predicate<Slot> IS_INVENTORY_ITEMS = (Slot slot) -> IS_INVENTORY.test(slot) &&
+            slot.getContainerSlot() < Inventory.INVENTORY_SIZE;
+    private static final Predicate<Slot> IS_INVENTORY_ARMOR = (Slot slot) -> IS_INVENTORY.test(slot) &&
+            slot.getContainerSlot() >= Inventory.INVENTORY_SIZE && slot.getContainerSlot() < Inventory.SLOT_OFFHAND;
+    private static final Predicate<Slot> IS_HOTBAR = (Slot slot) -> IS_INVENTORY_ITEMS.test(slot) &&
             Inventory.isHotbarSlot(slot.getContainerSlot());
-    private static final Predicate<Slot> IS_NOT_HOTBAR = (Slot slot) -> IS_INVENTORY.test(slot) &&
+    private static final Predicate<Slot> IS_NOT_HOTBAR = (Slot slot) -> IS_INVENTORY_ITEMS.test(slot) &&
             !IS_HOTBAR.test(slot);
 
     private final List<Rule> rules = new ArrayList<>();
@@ -78,7 +83,7 @@ public final class QuickMoveRuleSet {
             itemStack = itemInSlot.copy();
 
             for (Rule rule : this.rules) {
-                if (rule.filter().test(slot)) {
+                if (rule.isValid() && rule.filter().test(slot)) {
                     if (!this.action.moveItemStackTo(itemInSlot,
                             rule.startIndex(),
                             rule.endIndex(),
@@ -180,8 +185,8 @@ public final class QuickMoveRuleSet {
      */
     public QuickMoveRuleSet addContainerRule(int startIndex, int endIndex) {
         return this.addRule(new Rule(Rule.Type.CONTAINER, startIndex, endIndex, false, (Slot slot) -> {
-            return slot.index >= this.getInclusiveStartIndex(IS_INVENTORY) &&
-                    slot.index < this.getExclusiveEndIndex(IS_INVENTORY);
+            return slot.index >= this.getInclusiveStartIndex(IS_INVENTORY_ITEMS) &&
+                    slot.index < this.getExclusiveEndIndex(IS_INVENTORY_ITEMS);
         }));
     }
 
@@ -190,8 +195,8 @@ public final class QuickMoveRuleSet {
      *
      * @return the rule set
      */
-    public QuickMoveRuleSet addInventoryRule() {
-        return this.addInventoryRule(true);
+    public QuickMoveRuleSet addInventoryRules() {
+        return this.addInventoryRules(true);
     }
 
     /**
@@ -200,14 +205,17 @@ public final class QuickMoveRuleSet {
      * @param reverseDirection iterate backwards when placing the item
      * @return the rule set
      */
-    public QuickMoveRuleSet addInventoryRule(boolean reverseDirection) {
-        return this.addRule(new Rule(Rule.Type.INVENTORY,
-                this.getInclusiveStartIndex(IS_INVENTORY),
-                this.getExclusiveEndIndex(IS_INVENTORY),
+    public QuickMoveRuleSet addInventoryRules(boolean reverseDirection) {
+        this.addInventoryRule(Rule.Type.INVENTORY_ARMOR, reverseDirection, IS_INVENTORY_ARMOR);
+        return this.addInventoryRule(Rule.Type.INVENTORY_ITEMS, reverseDirection, IS_INVENTORY_ITEMS);
+    }
+
+    private QuickMoveRuleSet addInventoryRule(Rule.Type type, boolean reverseDirection, Predicate<Slot> filter) {
+        return this.addRule(new Rule(type,
+                this.getInclusiveStartIndex(filter),
+                this.getExclusiveEndIndex(filter),
                 reverseDirection,
-                (Slot slot) -> {
-                    return !(slot.container instanceof Inventory);
-                }));
+                IS_INVENTORY.negate()));
     }
 
     /**
@@ -218,22 +226,30 @@ public final class QuickMoveRuleSet {
      *
      * @return the rule set
      */
-    public QuickMoveRuleSet addHotbarRule() {
-        this.addRule(new Rule(Rule.Type.FROM_HOTBAR,
-                this.getInclusiveStartIndex(IS_HOTBAR),
-                this.getExclusiveEndIndex(IS_HOTBAR),
+    public QuickMoveRuleSet addInventoryCompartmentRules() {
+        this.addInventoryCompartmentRule(Rule.Type.TO_ARMOR,
+                Rule.Type.FROM_ARMOR,
+                IS_INVENTORY_ARMOR,
+                IS_INVENTORY_ITEMS);
+        return this.addInventoryCompartmentRule(Rule.Type.TO_HOTBAR, Rule.Type.FROM_HOTBAR, IS_HOTBAR, IS_NOT_HOTBAR);
+    }
+
+    private QuickMoveRuleSet addInventoryCompartmentRule(Rule.Type to, Rule.Type from, Predicate<Slot> toFilter, Predicate<Slot> fromFilter) {
+        this.addRule(new Rule(to,
+                this.getInclusiveStartIndex(toFilter),
+                this.getExclusiveEndIndex(toFilter),
                 false,
                 (Slot slot) -> {
-                    return slot.index >= this.getInclusiveStartIndex(IS_NOT_HOTBAR) &&
-                            slot.index < this.getExclusiveEndIndex(IS_NOT_HOTBAR);
+                    return slot.index >= this.getInclusiveStartIndex(fromFilter) &&
+                            slot.index < this.getExclusiveEndIndex(fromFilter);
                 }));
-        return this.addRule(new Rule(Rule.Type.TO_HOTBAR,
-                this.getInclusiveStartIndex(IS_NOT_HOTBAR),
-                this.getExclusiveEndIndex(IS_NOT_HOTBAR),
+        return this.addRule(new Rule(from,
+                this.getInclusiveStartIndex(fromFilter),
+                this.getExclusiveEndIndex(fromFilter),
                 false,
                 (Slot slot) -> {
-                    return slot.index >= this.getInclusiveStartIndex(IS_HOTBAR) &&
-                            slot.index < this.getExclusiveEndIndex(IS_HOTBAR);
+                    return slot.index >= this.getInclusiveStartIndex(toFilter) &&
+                            slot.index < this.getExclusiveEndIndex(toFilter);
                 }));
     }
 
@@ -273,12 +289,19 @@ public final class QuickMoveRuleSet {
 
     private record Rule(Type type, int startIndex, int endIndex, boolean reverseDirection, Predicate<Slot> filter) {
 
+        public boolean isValid() {
+            return this.startIndex != -1 && this.endIndex != -1;
+        }
+
         enum Type {
             CONTAINER_SLOT,
             CONTAINER,
-            INVENTORY,
+            INVENTORY_ITEMS,
+            INVENTORY_ARMOR,
+            TO_HOTBAR,
             FROM_HOTBAR,
-            TO_HOTBAR
+            TO_ARMOR,
+            FROM_ARMOR
         }
     }
 
