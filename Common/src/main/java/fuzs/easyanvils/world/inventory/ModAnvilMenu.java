@@ -10,6 +10,7 @@ import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
 import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
+import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
 import fuzs.puzzleslib.api.core.v1.CommonAbstractions;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;

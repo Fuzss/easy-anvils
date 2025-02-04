@@ -3,7 +3,6 @@ package fuzs.easyanvils;
 import fuzs.easyanvils.config.ClientConfig;
 import fuzs.easyanvils.config.CommonConfig;
 import fuzs.easyanvils.config.ServerConfig;
-import fuzs.easyanvils.data.DynamicRecipeProvider;
 import fuzs.easyanvils.handler.BlockConversionHandler;
 import fuzs.easyanvils.handler.ItemInteractionHandler;
 import fuzs.easyanvils.handler.NameTagDropHandler;
@@ -15,7 +14,6 @@ import fuzs.easyanvils.network.client.C2SRenameItemMessage;
 import fuzs.easyanvils.world.level.block.AnvilWithInventoryBlock;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
-import fuzs.puzzleslib.api.core.v1.context.PackRepositorySourcesContext;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
@@ -25,8 +23,6 @@ import fuzs.puzzleslib.api.event.v1.entity.player.AnvilEvents;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
 import fuzs.puzzleslib.api.network.v3.NetworkHandler;
-import fuzs.puzzleslib.api.resources.v1.DynamicPackResources;
-import fuzs.puzzleslib.api.resources.v1.PackResourcesHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.BlockSource;
@@ -73,18 +69,14 @@ public class EasyAnvils implements ModConstructor {
 
     private static void registerEventHandlers() {
         RegistryEntryAddedCallback.registryEntryAdded(Registries.BLOCK)
-                .register(BlockConversionHandler.onRegistryEntryAdded(BLOCK_PREDICATE, AnvilWithInventoryBlock::new,
-                        MOD_ID
-                ));
-        AddBlockEntityTypeBlocksCallback.EVENT.register(
-                BlockConversionHandler.onAddBlockEntityTypeBlocks(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE));
-        PlayerInteractEvents.USE_BLOCK.register(
-                BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
-                        () -> CONFIG.get(CommonConfig.class).disableVanillaAnvil
-                ));
+                .register(BlockConversionHandler.onRegistryEntryAdded(BLOCK_PREDICATE,
+                        AnvilWithInventoryBlock::new,
+                        MOD_ID));
+        AddBlockEntityTypeBlocksCallback.EVENT.register(BlockConversionHandler.onAddBlockEntityTypeBlocks(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE));
+        PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
+                () -> CONFIG.get(CommonConfig.class).disableVanillaAnvil));
         TagsUpdatedCallback.EVENT.register(EventPhase.FIRST,
-                BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, BLOCK_PREDICATE)
-        );
+                BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, BLOCK_PREDICATE));
         PlayerInteractEvents.USE_ITEM.register(ItemInteractionHandler::onUseItem);
         PlayerInteractEvents.USE_BLOCK.register(ItemInteractionHandler::onUseBlock);
         AnvilEvents.USE.register(ItemInteractionHandler::onAnvilUse);
@@ -118,14 +110,6 @@ public class EasyAnvils implements ModConstructor {
                 }
             }
         });
-    }
-
-    @Override
-    public void onAddDataPackFinders(PackRepositorySourcesContext context) {
-        if (!CONFIG.get(CommonConfig.class).nameTagCraftingRecipe) return;
-        context.addRepositorySource(PackResourcesHelper.buildServerPack(id("name_tag_recipe"),
-                DynamicPackResources.create(DynamicRecipeProvider::new), true
-        ));
     }
 
     public static ResourceLocation id(String path) {

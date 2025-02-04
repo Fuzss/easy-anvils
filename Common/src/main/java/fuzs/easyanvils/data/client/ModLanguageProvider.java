@@ -23,7 +23,9 @@ public class ModLanguageProvider extends AbstractLanguageProvider {
         builder.add(NameTagTooltipHandler.KEY_NAME_TAG_DESCRIPTION, "Use %s + %s to set a new name without an anvil.");
         builder.add(BlockConversionHandler.INVALID_BLOCK_COMPONENT, "Unable to open. Break and replace to use.");
         for (ChatFormatting chatFormatting : ChatFormatting.values()) {
-            String translationValue = Stream.of(chatFormatting.getName().split("_")).map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1)).collect(Collectors.joining(" "));
+            String translationValue = Stream.of(chatFormatting.getName().split("_"))
+                    .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
+                    .collect(Collectors.joining(" "));
             builder.add("chat.formatting." + chatFormatting.getName(), translationValue);
         }
         builder.add(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, "Unaltered Anvils");

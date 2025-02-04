@@ -150,18 +150,18 @@ public class AdvancedEditBox extends EditBox {
 
     @Override
     protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
-            int i = Mth.floor(mouseX) - this.getX();
-            if (this.bordered) {
-                i -= 4;
-            }
+        int i = Mth.floor(mouseX) - this.getX();
+        if (this.bordered) {
+            i -= 4;
+        }
 
-            String string = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
-            int mousePosition = this.font.plainSubstrByWidth(string, i).length() + this.displayPos;
+        String string = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
+        int mousePosition = this.font.plainSubstrByWidth(string, i).length() + this.displayPos;
 
         if (this.doubleClick) {
             // double click drag across text to select individual words
             // dragging outside the edit box will select everything until beginning / end
-            if (this.clicked(mouseX, mouseY)) {
+            if (this.isMouseOver(mouseX, mouseY)) {
                 int rightBoundary = this.getWordPosition(1, mousePosition, false);
                 this.moveCursorTo(Math.max(this.doubleClickHighlightPos, rightBoundary), false);
                 int leftBoundary = this.getWordPosition(-1, mousePosition, false);
@@ -181,7 +181,7 @@ public class AdvancedEditBox extends EditBox {
         } else {
             // drag across text to select individual letters
             // dragging outside the edit box will select everything until beginning / end
-            if (this.clicked(mouseX, mouseY)) {
+            if (this.isMouseOver(mouseX, mouseY)) {
                 this.moveCursorTo(mousePosition, true);
             } else if (this.highlightPos < mousePosition) {
                 this.moveCursorToEnd(true);

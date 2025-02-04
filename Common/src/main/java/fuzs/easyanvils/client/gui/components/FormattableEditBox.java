@@ -32,7 +32,9 @@ public class FormattableEditBox extends AdvancedEditBox {
         // custom formatter for applying formatting codes directly to the text preview
         this.formatter = (String formatterValue, Integer position) -> {
             List<FormattedCharSequence> list = Lists.newArrayList();
-            FormattedStringDecomposer.LengthLimitedCharSink sink = new FormattedStringDecomposer.LengthLimitedCharSink(formatterValue.length(), position);
+            FormattedStringDecomposer.LengthLimitedCharSink sink = new FormattedStringDecomposer.LengthLimitedCharSink(
+                    formatterValue.length(),
+                    position);
             // format the whole value, we need the formatting to apply correctly and not get interrupted by the cursor being placed in between a formatting code
             FormattedStringDecomposer.iterateFormatted(this.value, Style.EMPTY, (index, style, j) -> {
                 if (sink.accept(index, style, j)) {
@@ -105,8 +107,13 @@ public class FormattableEditBox extends AdvancedEditBox {
             i -= 4;
         }
 
-        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos, Screen.hasShiftDown());
+        String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
+                this.value,
+                this.displayPos,
+                this.getInnerWidth(),
+                Style.EMPTY);
+        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() +
+                this.displayPos, Screen.hasShiftDown());
 
         long millis = Util.getMillis();
         boolean tripleClick = this.doubleClick;
@@ -136,13 +143,18 @@ public class FormattableEditBox extends AdvancedEditBox {
             i -= 4;
         }
 
-        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
-        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() + this.displayPos;
+        String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
+                this.value,
+                this.displayPos,
+                this.getInnerWidth(),
+                Style.EMPTY);
+        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() +
+                this.displayPos;
 
         if (this.doubleClick) {
             // double click drag across text to select individual words
             // dragging outside the edit box will select everything until beginning / end
-            if (this.clicked(mouseX, mouseY)) {
+            if (this.isMouseOver(mouseX, mouseY)) {
                 int rightBoundary = this.getWordPosition(1, mousePosition, false);
                 this.moveCursorTo(Math.max(this.doubleClickHighlightPos, rightBoundary), false);
                 int leftBoundary = this.getWordPosition(-1, mousePosition, false);
@@ -162,7 +174,7 @@ public class FormattableEditBox extends AdvancedEditBox {
         } else {
             // drag across text to select individual letters
             // dragging outside the edit box will select everything until beginning / end
-            if (this.clicked(mouseX, mouseY)) {
+            if (this.isMouseOver(mouseX, mouseY)) {
                 this.moveCursorTo(mousePosition, true);
             } else if (this.highlightPos < mousePosition) {
                 this.moveCursorToEnd(true);
@@ -177,12 +189,21 @@ public class FormattableEditBox extends AdvancedEditBox {
         if (this.isVisible()) {
             if (this.isBordered()) {
                 ResourceLocation resourceLocation = SPRITES.get(this.isActive(), this.isFocused());
-                guiGraphics.blitSprite(RenderType::guiTextured, resourceLocation, this.getX(), this.getY(), this.getWidth(), this.getHeight());
+                guiGraphics.blitSprite(RenderType::guiTextured,
+                        resourceLocation,
+                        this.getX(),
+                        this.getY(),
+                        this.getWidth(),
+                        this.getHeight());
             }
 
             int i = this.isEditable ? this.textColor : this.textColorUneditable;
             int j = this.cursorPos - this.displayPos;
-            String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, this.getInnerWidth(), Style.EMPTY);
+            String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
+                    this.value,
+                    this.displayPos,
+                    this.getInnerWidth(),
+                    Style.EMPTY);
             boolean bl = j >= 0 && j <= string.length();
             boolean bl2 = this.isFocused() && (Util.getMillis() - this.focusedTime) / 300L % 2L == 0L && bl;
             int l = this.bordered ? this.getX() + 4 : this.getX();
@@ -198,7 +219,8 @@ public class FormattableEditBox extends AdvancedEditBox {
                 n = guiGraphics.drawString(this.font, this.formatter.apply(string2, this.displayPos), l, m, i);
             }
 
-            boolean bl3 = this.cursorPos < this.value.length() || ComponentDecomposer.getStringLength(this.value) >= this.getMaxLength();
+            boolean bl3 = this.cursorPos < this.value.length() ||
+                    ComponentDecomposer.getStringLength(this.value) >= this.getMaxLength();
             int o = n;
             if (!bl) {
                 o = j > 0 ? l + this.width : l;
@@ -228,7 +250,9 @@ public class FormattableEditBox extends AdvancedEditBox {
             }
 
             if (k != j) {
-                int p = l + FormattedStringDecomposer.stringWidth(this.font, this.value.substring(0, this.highlightPos), this.displayPos);
+                int p = l + FormattedStringDecomposer.stringWidth(this.font,
+                        this.value.substring(0, this.highlightPos),
+                        this.displayPos);
                 this.renderHighlight(guiGraphics, o, m - 1, p - 1, m + 1 + 9);
             }
         }
@@ -242,10 +266,15 @@ public class FormattableEditBox extends AdvancedEditBox {
         }
 
         int j = this.getInnerWidth();
-        String string = FormattedStringDecomposer.plainHeadByWidth(this.font, this.value, this.displayPos, j, Style.EMPTY);
+        String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
+                this.value,
+                this.displayPos,
+                j,
+                Style.EMPTY);
         int k = string.length() + this.displayPos;
         if (position == this.displayPos) {
-            this.displayPos -= FormattedStringDecomposer.plainTailByWidth(this.font, this.value, j, Style.EMPTY).length();
+            this.displayPos -= FormattedStringDecomposer.plainTailByWidth(this.font, this.value, j, Style.EMPTY)
+                    .length();
         }
 
         if (position > k) {
@@ -259,6 +288,7 @@ public class FormattableEditBox extends AdvancedEditBox {
 
     @Override
     public int getScreenX(int charNum) {
-        return charNum > this.value.length() ? this.getX() : this.getX() + FormattedStringDecomposer.stringWidth(this.font, this.value.substring(0, charNum), 0);
+        return charNum > this.value.length() ? this.getX() :
+                this.getX() + FormattedStringDecomposer.stringWidth(this.font, this.value.substring(0, charNum), 0);
     }
 }
