@@ -26,6 +26,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 
 public class EasyAnvilsClient implements ClientModConstructor {
 
@@ -47,34 +49,36 @@ public class EasyAnvilsClient implements ClientModConstructor {
 
     @Override
     public void onRegisterBlockStateResolver(BlockStateResolverContext context) {
-        ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-        BlockStateTranslator blockStateTranslator = new BlockStateTranslator();
         BlockConversionHandler.getBlockConversions().forEach((Block oldBlock, Block newBlock) -> {
-            context.registerBlockStateResolver(newBlock, consumer -> {
-                BlockStateModelLoader.LoadedModels loadedModels = ModelLoadingHelper.loadBlockState(resourceManager,
-                        oldBlock);
-                Map<ModelResourceLocation, ModelResourceLocation> modelResourceLocations = blockStateTranslator.convertAllBlockStates(
-                        newBlock,
-                        oldBlock);
-                for (BlockState blockState : newBlock.getStateDefinition().getPossibleStates()) {
-                    ModelResourceLocation newModelResourceLocation = BlockModelShaper.stateToModelLocation(blockState);
-                    ModelResourceLocation oldModelResourceLocation = modelResourceLocations.get(newModelResourceLocation);
-                    UnbakedBlockStateModel model = null;
-                    if (oldModelResourceLocation != null) {
-                        BlockStateModelLoader.LoadedModel loadedModel = loadedModels.models()
-                                .get(oldModelResourceLocation);
-                        if (loadedModel != null) {
-                            model = loadedModel.model();
+            context.registerBlockStateResolver(newBlock,
+                    (ResourceManager resourceManager, Executor executor) -> {
+                        return ModelLoadingHelper.loadBlockState(resourceManager, oldBlock, executor);
+                    },
+                    (BlockStateModelLoader.LoadedModels loadedModels, BiConsumer<BlockState, UnbakedBlockStateModel> consumer) -> {
+                        Map<ModelResourceLocation, ModelResourceLocation> modelResourceLocations = BlockStateTranslator.INSTANCE.convertAllBlockStates(
+                                newBlock,
+                                oldBlock);
+                        for (BlockState blockState : newBlock.getStateDefinition().getPossibleStates()) {
+                            ModelResourceLocation newModelResourceLocation = BlockModelShaper.stateToModelLocation(
+                                    blockState);
+                            ModelResourceLocation oldModelResourceLocation = modelResourceLocations.get(
+                                    newModelResourceLocation);
+                            UnbakedBlockStateModel model = null;
+                            if (oldModelResourceLocation != null) {
+                                BlockStateModelLoader.LoadedModel loadedModel = loadedModels.models()
+                                        .get(oldModelResourceLocation);
+                                if (loadedModel != null) {
+                                    model = loadedModel.model();
+                                }
+                            }
+                            if (model != null) {
+                                consumer.accept(blockState, model);
+                            } else {
+                                EasyAnvils.LOGGER.warn("Missing model for variant: '{}'", newModelResourceLocation);
+                                consumer.accept(blockState, ModelLoadingHelper.missingModel());
+                            }
                         }
-                    }
-                    if (model != null) {
-                        consumer.accept(blockState, model);
-                    } else {
-                        EasyAnvils.LOGGER.warn("Missing model for variant: '{}'", newModelResourceLocation);
-                        consumer.accept(blockState, ModelLoadingHelper.missingModel());
-                    }
-                }
-            });
+                    });
         });
     }
 

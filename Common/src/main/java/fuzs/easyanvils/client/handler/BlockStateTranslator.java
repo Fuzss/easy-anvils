@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class BlockStateTranslator {
+    public static final BlockStateTranslator INSTANCE = new BlockStateTranslator();
 
     public Map<ModelResourceLocation, ModelResourceLocation> convertAllBlockStates(Block oldBlock, Block newBlock) {
         Map<ModelResourceLocation, ModelResourceLocation> modelLocations = new HashMap<>();
