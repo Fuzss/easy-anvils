@@ -2,32 +2,38 @@ package fuzs.easyanvils.client;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.screens.inventory.ModAnvilScreen;
+import fuzs.easyanvils.client.gui.screens.inventory.NameTagEditScreen;
 import fuzs.easyanvils.client.handler.BlockStateTranslator;
-import fuzs.easyanvils.client.handler.NameTagTooltipHandler;
 import fuzs.easyanvils.client.renderer.blockentity.AnvilRenderer;
+import fuzs.easyanvils.config.ClientConfig;
+import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.handler.BlockConversionHandler;
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.puzzleslib.api.client.core.v1.ClientAbstractions;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockStateResolverContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
-import fuzs.puzzleslib.api.client.event.v1.ClientStartedCallback;
-import fuzs.puzzleslib.api.client.event.v1.gui.ItemTooltipCallback;
-import fuzs.puzzleslib.api.client.util.v1.ModelLoadingHelper;
+import fuzs.puzzleslib.api.client.event.v1.ClientLifecycleEvents;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.ItemTooltipRegistry;
+import fuzs.puzzleslib.api.client.renderer.v1.RenderTypeHelper;
+import fuzs.puzzleslib.api.client.renderer.v1.model.ModelLoadingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockModelShaper;
-import net.minecraft.client.renderer.block.model.UnbakedBlockStateModel;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class EasyAnvilsClient implements ClientModConstructor {
 
@@ -37,14 +43,26 @@ public class EasyAnvilsClient implements ClientModConstructor {
     }
 
     private static void registerEventHandlers() {
-        ClientStartedCallback.EVENT.register((Minecraft minecraft) -> {
+        ClientLifecycleEvents.STARTED.register((Minecraft minecraft) -> {
             // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
             for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
-                RenderType renderType = ClientAbstractions.INSTANCE.getRenderType(entry.getKey());
-                ClientAbstractions.INSTANCE.registerRenderType(entry.getValue(), renderType);
+                RenderType renderType = RenderTypeHelper.getRenderType(entry.getKey());
+                RenderTypeHelper.registerRenderType(entry.getValue(), renderType);
             }
         });
-        ItemTooltipCallback.EVENT.register(NameTagTooltipHandler::onItemTooltip);
+    }
+
+    @Override
+    public void onClientSetup() {
+        ItemTooltipRegistry.registerItemTooltip(Items.NAME_TAG,
+                (Item item, ItemStack itemStack, Item.TooltipContext tooltipContext, TooltipFlag tooltipFlag, Consumer<Component> tooltipLineConsumer) -> {
+                    if (!EasyAnvils.CONFIG.get(ClientConfig.class).nameTagTooltip) return;
+                    if (!EasyAnvils.CONFIG.getHolder(ServerConfig.class).isAvailable() ||
+                            !EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
+                        return;
+                    }
+                    tooltipLineConsumer.accept(NameTagEditScreen.DESCRIPTION_COMPONENT);
+                });
     }
 
     @Override
@@ -54,28 +72,17 @@ public class EasyAnvilsClient implements ClientModConstructor {
                     (ResourceManager resourceManager, Executor executor) -> {
                         return ModelLoadingHelper.loadBlockState(resourceManager, oldBlock, executor);
                     },
-                    (BlockStateModelLoader.LoadedModels loadedModels, BiConsumer<BlockState, UnbakedBlockStateModel> consumer) -> {
-                        Map<ModelResourceLocation, ModelResourceLocation> modelResourceLocations = BlockStateTranslator.INSTANCE.convertAllBlockStates(
+                    (BlockStateModelLoader.LoadedModels loadedModels, BiConsumer<BlockState, BlockStateModel.UnbakedRoot> blockStateConsumer) -> {
+                        Map<BlockState, BlockState> blockStates = BlockStateTranslator.INSTANCE.convertAllBlockStates(
                                 newBlock,
                                 oldBlock);
                         for (BlockState blockState : newBlock.getStateDefinition().getPossibleStates()) {
-                            ModelResourceLocation newModelResourceLocation = BlockModelShaper.stateToModelLocation(
-                                    blockState);
-                            ModelResourceLocation oldModelResourceLocation = modelResourceLocations.get(
-                                    newModelResourceLocation);
-                            UnbakedBlockStateModel model = null;
-                            if (oldModelResourceLocation != null) {
-                                BlockStateModelLoader.LoadedModel loadedModel = loadedModels.models()
-                                        .get(oldModelResourceLocation);
-                                if (loadedModel != null) {
-                                    model = loadedModel.model();
-                                }
-                            }
+                            BlockStateModel.UnbakedRoot model = loadedModels.models().get(blockStates.get(blockState));
                             if (model != null) {
-                                consumer.accept(blockState, model);
+                                blockStateConsumer.accept(blockState, model);
                             } else {
-                                EasyAnvils.LOGGER.warn("Missing model for variant: '{}'", newModelResourceLocation);
-                                consumer.accept(blockState, ModelLoadingHelper.missingModel());
+                                EasyAnvils.LOGGER.warn("Missing model for variant: '{}'", blockState);
+                                blockStateConsumer.accept(blockState, ModelLoadingHelper.missingModel());
                             }
                         }
                     });

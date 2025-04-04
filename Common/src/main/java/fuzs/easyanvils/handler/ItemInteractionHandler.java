@@ -2,11 +2,12 @@ package fuzs.easyanvils.handler;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.config.ServerConfig;
-import fuzs.easyanvils.network.S2CAnvilRepairMessage;
-import fuzs.easyanvils.network.S2COpenNameTagEditorMessage;
+import fuzs.easyanvils.network.ClientboundAnvilRepairMessage;
+import fuzs.easyanvils.network.ClientboundOpenNameTagEditorMessage;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.event.v1.data.MutableFloat;
-import fuzs.puzzleslib.api.network.v3.PlayerSet;
+import fuzs.puzzleslib.api.network.v4.MessageSender;
+import fuzs.puzzleslib.api.network.v4.PlayerSet;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -26,10 +27,13 @@ import org.jetbrains.annotations.Nullable;
 public class ItemInteractionHandler {
 
     public static EventResultHolder<InteractionResult> onUseItem(Player player, Level level, InteractionHand hand) {
-        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) return EventResultHolder.pass();
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
+            return EventResultHolder.pass();
+        }
         ItemStack itemInHand = player.getItemInHand(hand);
         if (player.isShiftKeyDown() && itemInHand.is(Items.NAME_TAG)) {
-            EasyAnvils.NETWORK.sendMessage(PlayerSet.ofEntity(player), new S2COpenNameTagEditorMessage(hand, itemInHand.getHoverName()).toClientboundMessage());
+            MessageSender.broadcast(PlayerSet.ofEntity(player),
+                    new ClientboundOpenNameTagEditorMessage(hand, itemInHand.getHoverName()));
             return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
         }
         return EventResultHolder.pass();
@@ -51,13 +55,13 @@ public class ItemInteractionHandler {
         return EventResultHolder.pass();
     }
 
-    public static boolean tryRepairAnvil(Level level, BlockPos blockPos, BlockState state) {
-        BlockState repairedState = getRepairedState(state);
+    public static boolean tryRepairAnvil(Level level, BlockPos blockPos, BlockState blockState) {
+        BlockState repairedState = getRepairedState(blockState);
         if (repairedState != null) {
             if (level instanceof ServerLevel serverLevel) {
                 level.setBlock(blockPos, repairedState, 2);
-                PlayerSet playerSet = PlayerSet.nearPosition(blockPos, serverLevel);
-                EasyAnvils.NETWORK.sendMessage(playerSet, new S2CAnvilRepairMessage(blockPos, repairedState).toClientboundMessage());
+                MessageSender.broadcast(PlayerSet.nearPosition(blockPos, serverLevel),
+                        new ClientboundAnvilRepairMessage(blockPos, repairedState));
             }
             return true;
         }
@@ -65,17 +69,22 @@ public class ItemInteractionHandler {
     }
 
     @Nullable
-    private static BlockState getRepairedState(BlockState oldBlockState) {
-        oldBlockState = BlockConversionHandler.convertToVanillaBlock(oldBlockState);
-        BlockState newBlockState;
-        if (oldBlockState.is(Blocks.DAMAGED_ANVIL)) {
-            newBlockState = Blocks.CHIPPED_ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, oldBlockState.getValue(AnvilBlock.FACING));
-        } else if (oldBlockState.is(Blocks.CHIPPED_ANVIL)) {
-            newBlockState = Blocks.ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, oldBlockState.getValue(AnvilBlock.FACING));
+    private static BlockState getRepairedState(BlockState blockState) {
+        blockState = BlockConversionHandler.convertToVanillaBlock(blockState);
+        blockState = getVanillaRepairedState(blockState);
+        return BlockConversionHandler.convertFromVanillaBlock(blockState);
+    }
+
+    @Nullable
+    private static BlockState getVanillaRepairedState(@Nullable BlockState blockState) {
+        if (blockState != null && blockState.is(Blocks.DAMAGED_ANVIL)) {
+            return Blocks.CHIPPED_ANVIL.defaultBlockState()
+                    .setValue(AnvilBlock.FACING, blockState.getValue(AnvilBlock.FACING));
+        } else if (blockState != null && blockState.is(Blocks.CHIPPED_ANVIL)) {
+            return Blocks.ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, blockState.getValue(AnvilBlock.FACING));
         } else {
             return null;
         }
-        return BlockConversionHandler.convertFromVanillaBlock(newBlockState);
     }
 
     public static void onAnvilUse(Player player, ItemStack left, ItemStack right, ItemStack output, MutableFloat breakChance) {

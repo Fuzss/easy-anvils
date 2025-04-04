@@ -2,7 +2,7 @@ package fuzs.easyanvils.client.gui.components;
 
 import fuzs.easyanvils.client.gui.screens.inventory.tooltip.LargeTooltipPositioner;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
-import fuzs.puzzleslib.api.client.gui.v2.components.tooltip.TooltipBuilder;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.TooltipBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,9 +24,12 @@ public class FormattingGuideWidget extends AbstractStringWidget {
     private static final Component QUESTION_MARK_COMPONENT = Component.literal("?");
 
     public FormattingGuideWidget(int x, int y, Font font) {
-        super(x - font.width(QUESTION_MARK_COMPONENT) * 2, y,
-                font.width(QUESTION_MARK_COMPONENT) * 2, font.lineHeight, QUESTION_MARK_COMPONENT, font
-        );
+        super(x - font.width(QUESTION_MARK_COMPONENT) * 2,
+                y,
+                font.width(QUESTION_MARK_COMPONENT) * 2,
+                font.lineHeight,
+                QUESTION_MARK_COMPONENT,
+                font);
         this.active = true;
         TooltipBuilder tooltipBuilder = TooltipBuilder.create()
                 .setTooltipPositionerFactory((ClientTooltipPositioner clientTooltipPositioner, AbstractWidget abstractWidget) -> {
@@ -35,7 +38,8 @@ public class FormattingGuideWidget extends AbstractStringWidget {
                     } else {
                         return new LargeTooltipPositioner(null);
                     }
-                }).setTooltipLineProcessor((List<? extends FormattedText> tooltipLines) -> {
+                })
+                .setTooltipLineProcessor((List<? extends FormattedText> tooltipLines) -> {
                     return tooltipLines.stream().map(FormattingGuideWidget::getVisualOrder).toList();
                 });
         for (ChatFormatting chatFormatting : ChatFormatting.values()) {

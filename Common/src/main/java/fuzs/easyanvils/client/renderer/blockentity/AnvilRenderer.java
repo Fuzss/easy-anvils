@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 public class AnvilRenderer implements BlockEntityRenderer<BlockEntity> {
     private final ItemRenderer itemRenderer;
@@ -24,18 +25,32 @@ public class AnvilRenderer implements BlockEntityRenderer<BlockEntity> {
     }
 
     @Override
-    public void render(BlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(BlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, Vec3 cameraPosition) {
         if (!EasyAnvils.CONFIG.get(ClientConfig.class).renderAnvilContents) return;
         Direction direction = blockEntity.getBlockState().getValue(AnvilBlock.FACING);
         int posData = (int) blockEntity.getBlockPos().asLong();
-        this.renderFlatItem(0, ((Container) blockEntity).getItem(0), direction, poseStack, bufferSource, packedLight, packedOverlay, posData, blockEntity.getLevel());
-        this.renderFlatItem(1, ((Container) blockEntity).getItem(1), direction, poseStack, bufferSource, packedLight, packedOverlay, posData, blockEntity.getLevel());
+        this.renderFlatItem(blockEntity.getLevel(), 0,
+                ((Container) blockEntity).getItem(0),
+                direction,
+                poseStack,
+                bufferSource,
+                packedLight,
+                packedOverlay,
+                posData);
+        this.renderFlatItem(blockEntity.getLevel(), 1,
+                ((Container) blockEntity).getItem(1),
+                direction,
+                poseStack,
+                bufferSource,
+                packedLight,
+                packedOverlay,
+                posData);
     }
 
-    private void renderFlatItem(int index, ItemStack stack, Direction direction, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, int posData, Level level) {
-        if (stack.isEmpty()) return;
+    private void renderFlatItem(Level level, int index, ItemStack itemStack, Direction direction, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, int posData) {
+        if (itemStack.isEmpty()) return;
         poseStack.pushPose();
-        poseStack.translate(0.0,1.0375, 0.0);
+        poseStack.translate(0.0, 1.0375, 0.0);
         poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
         boolean mirrored = (direction.getAxisDirection().getStep() == 1 ? 1 : 0) != index % 2;
         switch (direction.getAxis()) {
@@ -58,7 +73,14 @@ public class AnvilRenderer implements BlockEntityRenderer<BlockEntity> {
             }
         }
         poseStack.scale(0.375F, 0.375F, 0.375F);
-        this.itemRenderer.renderStatic(stack, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, bufferSource, level, posData + index);
+        this.itemRenderer.renderStatic(itemStack,
+                ItemDisplayContext.FIXED,
+                packedLight,
+                packedOverlay,
+                poseStack,
+                bufferSource,
+                level,
+                posData + index);
         poseStack.popPose();
     }
 }

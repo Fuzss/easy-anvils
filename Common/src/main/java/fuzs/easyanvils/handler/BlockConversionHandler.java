@@ -11,7 +11,6 @@ import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
-import fuzs.puzzleslib.api.init.v3.registry.RegistryHelper;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -120,7 +119,7 @@ public class BlockConversionHandler {
                 return;
             }
         }
-        if (RegistryHelper.is(tagKey, oldBlock)) {
+        if (oldBlock.builtInRegistryHolder().is(tagKey)) {
             BlockConversionHelper.setBlockForItem(blockItem, oldBlock);
         } else {
             BlockConversionHelper.setBlockForItem(blockItem, newBlock);

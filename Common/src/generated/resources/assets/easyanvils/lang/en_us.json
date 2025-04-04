@@ -22,7 +22,7 @@
   "chat.formatting.white": "White",
   "chat.formatting.yellow": "Yellow",
   "container.invalidBlock": "Unable to open. Break and replace to use.",
-  "easyanvils.item.name_tag.description": "Use %s + %s to set a new name without an anvil.",
-  "easyanvils.name_tag.edit": "Edit %s",
+  "item.easyanvils.name_tag.description": "Use %s + %s to set a new name without an anvil.",
+  "item.easyanvils.name_tag.edit": "Edit %s",
   "tag.block.easyanvils.unaltered_anvils": "Unaltered Anvils"
 }

@@ -1,13 +1,13 @@
 package fuzs.easyanvils.client.gui.screens.inventory;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.components.FormattableEditBox;
 import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.config.ServerConfig;
-import fuzs.easyanvils.network.client.C2SRenameItemMessage;
+import fuzs.easyanvils.network.client.ServerboundRenameItemMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
+import fuzs.puzzleslib.api.network.v4.MessageSender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -48,7 +48,9 @@ public class ModAnvilScreen extends AnvilScreen {
         this.setInitialFocus(this.name);
         this.name.setEditable(false);
         this.name.setVisible(false);
-        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7, this.topPos + this.titleLabelY, this.font));
+        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7,
+                this.topPos + this.titleLabelY,
+                this.font));
     }
 
     @Override
@@ -63,12 +65,13 @@ public class ModAnvilScreen extends AnvilScreen {
     private void onNameChanged(String input) {
         Slot slot = this.menu.getSlot(0);
         if (!slot.hasItem()) return;
-        if (!slot.getItem().has(DataComponents.CUSTOM_NAME) && input.equals(slot.getItem().getHoverName().getString())) {
+        if (!slot.getItem().has(DataComponents.CUSTOM_NAME) &&
+                input.equals(slot.getItem().getHoverName().getString())) {
             input = "";
         }
 
         if (this.menu.setItemName(input)) {
-            EasyAnvils.NETWORK.sendMessage(new C2SRenameItemMessage(input).toServerboundMessage());
+            MessageSender.broadcast(new ServerboundRenameItemMessage(input));
         }
     }
 
@@ -82,17 +85,22 @@ public class ModAnvilScreen extends AnvilScreen {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        RenderSystem.disableBlend();
         // copied from AbstractContainerScreen super
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
-        guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
+        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
+        guiGraphics.drawString(this.font,
+                this.playerInventoryTitle,
+                this.inventoryLabelX,
+                this.inventoryLabelY,
+                4210752,
+                false);
         int i = this.menu.getCost();
         if (i != 0) {
             int j = 8453920;
             Component component;
             // allow for custom max repair cost
             int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.tooExpensiveLimit;
-            if ((maxAnvilRepairCost != -1 && i >= maxAnvilRepairCost || i == -1) && !this.minecraft.player.getAbilities().instabuild) {
+            if ((maxAnvilRepairCost != -1 && i >= maxAnvilRepairCost || i == -1) &&
+                    !this.minecraft.player.getAbilities().instabuild) {
                 component = TOO_EXPENSIVE_TEXT;
                 j = 16736352;
             } else if (!this.menu.getSlot(2).hasItem()) {

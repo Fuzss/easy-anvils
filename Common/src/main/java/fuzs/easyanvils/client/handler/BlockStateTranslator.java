@@ -1,28 +1,25 @@
 package fuzs.easyanvils.client.handler;
 
-import net.minecraft.client.renderer.block.BlockModelShaper;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 public class BlockStateTranslator {
     public static final BlockStateTranslator INSTANCE = new BlockStateTranslator();
 
-    public Map<ModelResourceLocation, ModelResourceLocation> convertAllBlockStates(Block oldBlock, Block newBlock) {
-        Map<ModelResourceLocation, ModelResourceLocation> modelLocations = new HashMap<>();
-        for (BlockState oldBlockState : oldBlock.getStateDefinition().getPossibleStates()) {
-            BlockState newBlockState = this.convertBlockState(newBlock.getStateDefinition(), oldBlockState);
-            modelLocations.put(BlockModelShaper.stateToModelLocation(oldBlockState),
-                    BlockModelShaper.stateToModelLocation(newBlockState));
-        }
-        return modelLocations;
+    public Map<BlockState, BlockState> convertAllBlockStates(Block newBlock, Block oldBlock) {
+        return newBlock.getStateDefinition()
+                .getPossibleStates()
+                .stream()
+                .collect(ImmutableMap.toImmutableMap(Function.identity(), blockState -> {
+                    return this.convertBlockState(oldBlock.getStateDefinition(), blockState);
+                }));
     }
 
     private BlockState convertBlockState(StateDefinition<Block, BlockState> newStateDefinition, BlockState oldBlockState) {

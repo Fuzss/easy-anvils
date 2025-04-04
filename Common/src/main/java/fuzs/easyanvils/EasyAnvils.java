@@ -7,13 +7,14 @@ import fuzs.easyanvils.handler.BlockConversionHandler;
 import fuzs.easyanvils.handler.ItemInteractionHandler;
 import fuzs.easyanvils.handler.NameTagDropHandler;
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.easyanvils.network.S2CAnvilRepairMessage;
-import fuzs.easyanvils.network.S2COpenNameTagEditorMessage;
-import fuzs.easyanvils.network.client.C2SNameTagUpdateMessage;
-import fuzs.easyanvils.network.client.C2SRenameItemMessage;
+import fuzs.easyanvils.network.ClientboundAnvilRepairMessage;
+import fuzs.easyanvils.network.ClientboundOpenNameTagEditorMessage;
+import fuzs.easyanvils.network.client.ServerboundNameTagUpdateMessage;
+import fuzs.easyanvils.network.client.ServerboundRenameItemMessage;
 import fuzs.easyanvils.world.level.block.AnvilWithInventoryBlock;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
+import fuzs.puzzleslib.api.core.v1.context.PayloadTypesContext;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
@@ -22,7 +23,6 @@ import fuzs.puzzleslib.api.event.v1.entity.living.LivingDropsCallback;
 import fuzs.puzzleslib.api.event.v1.entity.player.AnvilEvents;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
-import fuzs.puzzleslib.api.network.v3.NetworkHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.BlockSource;
@@ -47,12 +47,6 @@ public class EasyAnvils implements ModConstructor {
     public static final String MOD_NAME = "Easy Anvils";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    public static final NetworkHandler NETWORK = NetworkHandler.builder(MOD_ID)
-            .registerLegacyClientbound(S2COpenNameTagEditorMessage.class, S2COpenNameTagEditorMessage::new)
-            .registerLegacyServerbound(C2SNameTagUpdateMessage.class, C2SNameTagUpdateMessage::new)
-            .registerLegacyClientbound(S2CAnvilRepairMessage.class, S2CAnvilRepairMessage::new)
-            .registerLegacyServerbound(C2SRenameItemMessage.class, C2SRenameItemMessage::new);
-    ;
     public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID)
             .client(ClientConfig.class)
             .common(CommonConfig.class)
@@ -110,6 +104,15 @@ public class EasyAnvils implements ModConstructor {
                 }
             }
         });
+    }
+
+    @Override
+    public void onRegisterPayloadTypes(PayloadTypesContext context) {
+        context.playToClient(ClientboundAnvilRepairMessage.class, ClientboundAnvilRepairMessage.STREAM_CODEC);
+        context.playToServer(ServerboundRenameItemMessage.class, ServerboundRenameItemMessage.STREAM_CODEC);
+        context.playToClient(ClientboundOpenNameTagEditorMessage.class,
+                ClientboundOpenNameTagEditorMessage.STREAM_CODEC);
+        context.playToServer(ServerboundNameTagUpdateMessage.class, ServerboundNameTagUpdateMessage.STREAM_CODEC);
     }
 
     public static ResourceLocation id(String path) {
