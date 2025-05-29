@@ -4,17 +4,17 @@ import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.config.RenameAndRepairCost;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.init.ModRegistry;
+import fuzs.easyanvils.services.CommonAbstractions;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
 import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
-import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
-import fuzs.puzzleslib.api.item.v2.EnchantingHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -30,7 +30,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.Objects;
 
-public class ModAnvilMenu extends AnvilMenu {
+public abstract class ModAnvilMenu extends AnvilMenu {
     private final Container container;
     private final AnvilMenuState builtInAnvilState;
     private final AnvilMenuState vanillaAnvilState;
@@ -40,7 +40,8 @@ public class ModAnvilMenu extends AnvilMenu {
         // never used since still valid is not called on clients, might as well be null
         this.container = new SimpleContainer();
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, ContainerLevelAccess.NULL);
-        this.vanillaAnvilState = new VanillaAnvilMenu(inventory, ContainerLevelAccess.NULL);
+        this.vanillaAnvilState = CommonAbstractions.INSTANCE.createVanillaAnvilMenu(inventory,
+                ContainerLevelAccess.NULL);
         this.createResult();
     }
 
@@ -49,7 +50,7 @@ public class ModAnvilMenu extends AnvilMenu {
         // we just need this for checking if the block entity is still valid
         this.container = blockEntity;
         this.builtInAnvilState = new BuiltInAnvilMenu(inventory, containerLevelAccess);
-        this.vanillaAnvilState = new VanillaAnvilMenu(inventory, containerLevelAccess);
+        this.vanillaAnvilState = CommonAbstractions.INSTANCE.createVanillaAnvilMenu(inventory, containerLevelAccess);
         this.initializeSlots(blockEntity);
         this.createResult();
     }
@@ -72,41 +73,40 @@ public class ModAnvilMenu extends AnvilMenu {
 
     @Override
     protected boolean mayPickup(Player player, boolean hasStack) {
-        // change cost requirement from > 0 to >= 0 to allow for free name tag renames
+        // change the cost requirement from > 0 to >= 0 to allow for free name tag renames
         return (player.getAbilities().instabuild || player.experienceLevel >= this.getCost()) && this.getCost() >= 0;
     }
 
-    @Override
-    public void createResult() {
+    protected final void createAnvilResult() {
         // this is called during <init> when these aren't populated yet
         if (this.builtInAnvilState == null || this.vanillaAnvilState == null) return;
-        // to not break custom anvil recipes from other mods we compare the outcome from the vanilla anvil logic and
+        // to not break custom anvil recipes from other mods, we compare the outcome from the vanilla anvil logic and
         // the actual current anvil logic (with possible alterations from mods via Mixin or the Forge event)
-        // if the result is not equal we do nothing and let the interfering mod take the upper hand
-        ItemStack left = this.inputSlots.getItem(0);
-        ItemStack right = this.inputSlots.getItem(1);
-        this.builtInAnvilState.init(left, right, this.itemName);
-        this.vanillaAnvilState.init(left, right, this.itemName);
+        // if the result is not equal, we do nothing and let the interfering mod take the upper hand
+        ItemStack primaryItemStack = this.inputSlots.getItem(0);
+        ItemStack secondaryItemStack = this.inputSlots.getItem(1);
+        this.builtInAnvilState.init(primaryItemStack, secondaryItemStack, this.itemName);
+        this.vanillaAnvilState.init(primaryItemStack, secondaryItemStack, this.itemName);
         this.builtInAnvilState.fillResultSlots();
         this.vanillaAnvilState.fillResultSlots();
         if (!AnvilMenuState.equals(this.builtInAnvilState, this.vanillaAnvilState)) {
             super.createResult();
         } else {
-            this.createResult(left, right, this.itemName);
+            this.createAnvilResult(primaryItemStack, secondaryItemStack, this.itemName);
         }
     }
 
-    private void createResult(ItemStack leftInput, ItemStack rightInput, String itemName) {
+    private void createAnvilResult(ItemStack primaryItemStack, ItemStack secondaryItemStack, String itemName) {
         this.setCost(1);
-        if (leftInput.isEmpty() || !EnchantmentHelper.canStoreEnchantments(leftInput)) {
+        if (primaryItemStack.isEmpty() || !EnchantmentHelper.canStoreEnchantments(primaryItemStack)) {
             this.resultSlots.setItem(0, ItemStack.EMPTY);
             this.setCost(0);
         } else {
-            ItemStack output = leftInput.copy();
+            ItemStack output = primaryItemStack.copy();
             ItemEnchantments.Mutable leftEnchantments = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(
                     output));
-            int baseRepairCost = leftInput.getOrDefault(DataComponents.REPAIR_COST, 0) +
-                    (rightInput.isEmpty() ? 0 : rightInput.getOrDefault(DataComponents.REPAIR_COST, 0));
+            int baseRepairCost = primaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0) +
+                    (secondaryItemStack.isEmpty() ? 0 : secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0));
             // no prior work penalty, or fixed
             baseRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.priorWorkPenalty.operator.applyAsInt(
                     baseRepairCost);
@@ -116,9 +116,9 @@ public class ModAnvilMenu extends AnvilMenu {
             int repairOperationCost = 0;
             int enchantOperationCost = 0;
             int renameOperationCost = 0;
-            if (!rightInput.isEmpty()) {
-                isBook = rightInput.has(DataComponents.STORED_ENCHANTMENTS);
-                if (output.isDamageableItem() && output.isValidRepairItem(rightInput)) {
+            if (!secondaryItemStack.isEmpty()) {
+                isBook = secondaryItemStack.has(DataComponents.STORED_ENCHANTMENTS);
+                if (output.isDamageableItem() && output.isValidRepairItem(secondaryItemStack)) {
                     int l2 = (int) Math.min(output.getDamageValue(),
                             Math.floor(output.getMaxDamage() *
                                     EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
@@ -129,7 +129,8 @@ public class ModAnvilMenu extends AnvilMenu {
                     }
 
                     int repairMaterials;
-                    for (repairMaterials = 0; l2 > 0 && repairMaterials < rightInput.getCount(); ++repairMaterials) {
+                    for (repairMaterials = 0;
+                         l2 > 0 && repairMaterials < secondaryItemStack.getCount(); ++repairMaterials) {
                         int j3 = output.getDamageValue() - l2;
                         output.setDamageValue(j3);
                         repairOperationCost += EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialUnitCost;
@@ -140,15 +141,15 @@ public class ModAnvilMenu extends AnvilMenu {
 
                     this.repairItemCountCost = repairMaterials;
                 } else {
-                    if (!isBook && (!output.is(rightInput.getItem()) || !output.isDamageableItem())) {
+                    if (!isBook && (!output.is(secondaryItemStack.getItem()) || !output.isDamageableItem())) {
                         this.resultSlots.setItem(0, ItemStack.EMPTY);
                         this.setCost(0);
                         return;
                     }
 
                     if (output.isDamageableItem() && !isBook) {
-                        int l = leftInput.getMaxDamage() - leftInput.getDamageValue();
-                        int i1 = rightInput.getMaxDamage() - rightInput.getDamageValue();
+                        int l = primaryItemStack.getMaxDamage() - primaryItemStack.getDamageValue();
+                        int i1 = secondaryItemStack.getMaxDamage() - secondaryItemStack.getDamageValue();
                         int j1 = i1 + (int) Math.floor(output.getMaxDamage() *
                                 EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithOtherItemBonusDurability);
                         int k1 = l + j1;
@@ -163,7 +164,7 @@ public class ModAnvilMenu extends AnvilMenu {
                         }
                     }
 
-                    ItemEnchantments rightEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(rightInput);
+                    ItemEnchantments rightEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(secondaryItemStack);
                     boolean itemWithCompatibleEnchantment = false;
                     boolean itemWithIncompatibleEnchantment = false;
 
@@ -173,8 +174,8 @@ public class ModAnvilMenu extends AnvilMenu {
                         int enchantmentLevel = rightEnchantments.getLevel(rightHolder);
                         enchantmentLevel = leftEnchantmentLevel == enchantmentLevel ? enchantmentLevel + 1 :
                                 Math.max(enchantmentLevel, leftEnchantmentLevel);
-                        boolean compatibleWithItem = rightEnchantment.canEnchant(leftInput);
-                        if (this.player.getAbilities().instabuild || leftInput.is(Items.ENCHANTED_BOOK)) {
+                        boolean compatibleWithItem = rightEnchantment.canEnchant(primaryItemStack);
+                        if (this.player.getAbilities().instabuild || primaryItemStack.is(Items.ENCHANTED_BOOK)) {
                             compatibleWithItem = true;
                         }
 
@@ -217,7 +218,7 @@ public class ModAnvilMenu extends AnvilMenu {
                             }
 
                             // different implementation for showing 'Too Expensive!' client-side from vanilla
-                            if (leftInput.getCount() > 1 && !this.player.getAbilities().instabuild) {
+                            if (primaryItemStack.getCount() > 1 && !this.player.getAbilities().instabuild) {
                                 this.resultSlots.setItem(0, ItemStack.EMPTY);
                                 this.setCost(-1);
                                 return;
@@ -235,36 +236,44 @@ public class ModAnvilMenu extends AnvilMenu {
 
             boolean hasRenamedItem = false;
             if (ComponentDecomposer.getStringLength(itemName) == 0) {
-                if (leftInput.has(DataComponents.CUSTOM_NAME)) {
+                if (primaryItemStack.has(DataComponents.CUSTOM_NAME)) {
                     renameOperationCost =
-                            EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(leftInput) ? 0 : 1;
+                            EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(primaryItemStack) ?
+                                    0 : 1;
                     hasRenamedItem = true;
                     output.remove(DataComponents.CUSTOM_NAME);
                 }
-            } else if (!itemName.equals(ComponentDecomposer.toFormattedString(leftInput.getHoverName()))) {
+            } else if (!itemName.equals(ComponentDecomposer.toFormattedString(primaryItemStack.getHoverName()))) {
                 renameOperationCost =
-                        EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(leftInput) ? 0 : 1;
+                        EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(primaryItemStack) ? 0 :
+                                1;
                 hasRenamedItem = true;
                 output.set(DataComponents.CUSTOM_NAME, ComponentDecomposer.toFormattedComponent(itemName));
-            }
-
-            if (isBook && !EnchantingHelper.isBookEnchantable(output, rightInput)) {
-                output = ItemStack.EMPTY;
             }
 
             int allOperationsCost = enchantOperationCost + repairOperationCost + renameOperationCost;
             if (allOperationsCost == 0) {
                 this.setCost(0);
-                // when renaming is free make sure to let the item stack pass without being cleared
+                // when renaming is free, make sure to let the item stack pass without being cleared
                 if (!hasRenamedItem) {
                     output = ItemStack.EMPTY;
                 }
-            } else if (enchantOperationCost == 0 &&
-                    EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts ==
-                            RenameAndRepairCost.FIXED) {
-                this.setCost(allOperationsCost);
             } else {
-                this.setCost(baseRepairCost + allOperationsCost);
+
+                int newCost;
+                if (enchantOperationCost == 0 &&
+                        EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts ==
+                                RenameAndRepairCost.FIXED) {
+                    newCost = allOperationsCost;
+                } else {
+                    newCost = baseRepairCost + allOperationsCost;
+                }
+
+                this.setCost(Mth.clamp(newCost, 0, 2147483647));
+            }
+
+            if (hasRenamedItem && allOperationsCost == renameOperationCost) {
+                this.onlyRenaming = true;
             }
 
             int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.tooExpensiveLimit;
@@ -286,13 +295,13 @@ public class ModAnvilMenu extends AnvilMenu {
             if (!output.isEmpty()) {
 
                 int outputRepairCost = output.getOrDefault(DataComponents.REPAIR_COST, 0);
-                if (!rightInput.isEmpty() &&
-                        outputRepairCost < rightInput.getOrDefault(DataComponents.REPAIR_COST, 0)) {
-                    outputRepairCost = rightInput.getOrDefault(DataComponents.REPAIR_COST, 0);
+                if (!secondaryItemStack.isEmpty() &&
+                        outputRepairCost < secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0)) {
+                    outputRepairCost = secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0);
                 }
 
                 if (allOperationsCost > 0) {
-                    if (enchantOperationCost > 0 && (!isBook || !leftInput.is(Items.ENCHANTED_BOOK) ||
+                    if (enchantOperationCost > 0 && (!isBook || !primaryItemStack.is(Items.ENCHANTED_BOOK) ||
                             !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeEnchantsForBooks) ||
                             !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeRenamesAndRepairs) {
                         outputRepairCost = AnvilMenu.calculateIncreasedRepairCost(outputRepairCost);

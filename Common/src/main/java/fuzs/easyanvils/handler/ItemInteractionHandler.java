@@ -5,7 +5,6 @@ import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.ClientboundAnvilRepairMessage;
 import fuzs.easyanvils.network.ClientboundOpenNameTagEditorMessage;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
-import fuzs.puzzleslib.api.event.v1.data.MutableFloat;
 import fuzs.puzzleslib.api.network.v4.MessageSender;
 import fuzs.puzzleslib.api.network.v4.PlayerSet;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
@@ -15,11 +14,13 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -87,11 +88,30 @@ public class ItemInteractionHandler {
         }
     }
 
-    public static void onAnvilUse(Player player, ItemStack left, ItemStack right, ItemStack output, MutableFloat breakChance) {
-        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.riskFreeAnvilRenaming && right.isEmpty()) {
-            breakChance.accept(0.0F);
+    public static void onTakeAnvilOutputItemStack(ContainerLevelAccess containerLevelAccess, Player player, boolean onlyRenaming) {
+        containerLevelAccess.execute((Level level, BlockPos blockPos) -> {
+            BlockState blockstate = level.getBlockState(blockPos);
+            if (!player.getAbilities().instabuild && blockstate.is(BlockTags.ANVIL) &&
+                    player.getRandom().nextFloat() < computeAnvilBreakChance(onlyRenaming)) {
+                BlockState damagedBlockState = AnvilBlock.damage(blockstate);
+                if (damagedBlockState == null) {
+                    level.removeBlock(blockPos, false);
+                    level.levelEvent(LevelEvent.SOUND_ANVIL_BROKEN, blockPos, 0);
+                } else {
+                    level.setBlock(blockPos, damagedBlockState, 2);
+                    level.levelEvent(LevelEvent.SOUND_ANVIL_USED, blockPos, 0);
+                }
+            } else {
+                level.levelEvent(LevelEvent.SOUND_ANVIL_USED, blockPos, 0);
+            }
+        });
+    }
+
+    private static float computeAnvilBreakChance(boolean onlyRenaming) {
+        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.riskFreeAnvilRenaming && onlyRenaming) {
+            return 0.0F;
         } else {
-            breakChance.accept((float) EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilBreakChance);
+            return (float) EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilBreakChance;
         }
     }
 }

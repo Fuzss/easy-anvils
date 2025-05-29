@@ -20,7 +20,6 @@ import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventPhase;
 import fuzs.puzzleslib.api.event.v1.entity.living.LivingDropsCallback;
-import fuzs.puzzleslib.api.event.v1.entity.player.AnvilEvents;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
 import net.minecraft.core.BlockPos;
@@ -73,7 +72,6 @@ public class EasyAnvils implements ModConstructor {
                 BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, BLOCK_PREDICATE));
         PlayerInteractEvents.USE_ITEM.register(ItemInteractionHandler::onUseItem);
         PlayerInteractEvents.USE_BLOCK.register(ItemInteractionHandler::onUseBlock);
-        AnvilEvents.USE.register(ItemInteractionHandler::onAnvilUse);
         LivingDropsCallback.EVENT.register(NameTagDropHandler::onLivingDrops);
     }
 

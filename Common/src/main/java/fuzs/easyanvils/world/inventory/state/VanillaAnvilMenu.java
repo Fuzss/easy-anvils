@@ -14,15 +14,16 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
-public class VanillaAnvilMenu extends BuiltInAnvilMenu {
+/**
+ * A direct copy from the vanilla method to surpass any mixin or event modifications.
+ */
+public abstract class VanillaAnvilMenu extends BuiltInAnvilMenu {
 
     public VanillaAnvilMenu(Inventory inventory, ContainerLevelAccess containerLevelAccess) {
         super(inventory, containerLevelAccess);
     }
 
-    @Override
-    public void createResult() {
-        // just copied from vanilla so no Mixins can get in here
+    protected final void createAnvilResult() {
         ItemStack itemStack = this.inputSlots.getItem(0);
         this.onlyRenaming = false;
         this.cost.set(1);
@@ -32,9 +33,10 @@ public class VanillaAnvilMenu extends BuiltInAnvilMenu {
         if (!itemStack.isEmpty() && EnchantmentHelper.canStoreEnchantments(itemStack)) {
             ItemStack itemStack2 = itemStack.copy();
             ItemStack itemStack3 = this.inputSlots.getItem(1);
-            ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(itemStack2));
-            l += (long)itemStack.getOrDefault(DataComponents.REPAIR_COST, Integer.valueOf(0)).intValue()
-                    + (long)itemStack3.getOrDefault(DataComponents.REPAIR_COST, Integer.valueOf(0)).intValue();
+            ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(
+                    itemStack2));
+            l += (long) itemStack.getOrDefault(DataComponents.REPAIR_COST, 0).intValue() +
+                    itemStack3.getOrDefault(DataComponents.REPAIR_COST, 0).intValue();
             this.repairItemCountCost = 0;
             if (!itemStack3.isEmpty()) {
                 boolean bl = itemStack3.has(DataComponents.STORED_ENCHANTMENTS);
@@ -83,13 +85,13 @@ public class VanillaAnvilMenu extends BuiltInAnvilMenu {
                     boolean bl3 = false;
 
                     for (Object2IntMap.Entry<Holder<Enchantment>> entry : itemEnchantments.entrySet()) {
-                        Holder<Enchantment> holder = (Holder<Enchantment>)entry.getKey();
+                        Holder<Enchantment> holder = (Holder<Enchantment>) entry.getKey();
                         int q = mutable.getLevel(holder);
                         int r = entry.getIntValue();
                         r = q == r ? r + 1 : Math.max(r, q);
                         Enchantment enchantment = holder.value();
                         boolean bl4 = enchantment.canEnchant(itemStack);
-                        if (this.player.getAbilities().instabuild || itemStack.is(Items.ENCHANTED_BOOK)) {
+                        if (this.player.hasInfiniteMaterials() || itemStack.is(Items.ENCHANTED_BOOK)) {
                             bl4 = true;
                         }
 
@@ -141,7 +143,7 @@ public class VanillaAnvilMenu extends BuiltInAnvilMenu {
                 itemStack2.remove(DataComponents.CUSTOM_NAME);
             }
 
-            int t = i <= 0 ? 0 : (int)Mth.clamp(l + (long)i, 0L, 2147483647L);
+            int t = i <= 0 ? 0 : (int) Mth.clamp(l + i, 0L, 2147483647L);
             this.cost.set(t);
             if (i <= 0) {
                 itemStack2 = ItemStack.EMPTY;
@@ -155,14 +157,14 @@ public class VanillaAnvilMenu extends BuiltInAnvilMenu {
                 this.onlyRenaming = true;
             }
 
-            if (this.cost.get() >= 40 && !this.player.getAbilities().instabuild) {
+            if (this.cost.get() >= 40 && !this.player.hasInfiniteMaterials()) {
                 itemStack2 = ItemStack.EMPTY;
             }
 
             if (!itemStack2.isEmpty()) {
-                int kxx = itemStack2.getOrDefault(DataComponents.REPAIR_COST, Integer.valueOf(0));
-                if (kxx < itemStack3.getOrDefault(DataComponents.REPAIR_COST, Integer.valueOf(0))) {
-                    kxx = itemStack3.getOrDefault(DataComponents.REPAIR_COST, Integer.valueOf(0));
+                int kxx = itemStack2.getOrDefault(DataComponents.REPAIR_COST, 0);
+                if (kxx < itemStack3.getOrDefault(DataComponents.REPAIR_COST, 0)) {
+                    kxx = itemStack3.getOrDefault(DataComponents.REPAIR_COST, 0);
                 }
 
                 if (j != i || j == 0) {

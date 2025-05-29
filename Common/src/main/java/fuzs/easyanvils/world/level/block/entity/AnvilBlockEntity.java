@@ -1,7 +1,7 @@
 package fuzs.easyanvils.world.level.block.entity;
 
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.easyanvils.world.inventory.ModAnvilMenu;
+import fuzs.easyanvils.services.CommonAbstractions;
 import fuzs.puzzleslib.api.container.v1.ContainerMenuHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -107,7 +107,10 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
 
     @Override
     protected AbstractContainerMenu createMenu(int id, Inventory inventory) {
-        return new ModAnvilMenu(id, inventory, this, ContainerLevelAccess.create(this.level, this.worldPosition));
+        return CommonAbstractions.INSTANCE.createAnvilMenu(id,
+                inventory,
+                this,
+                ContainerLevelAccess.create(this.level, this.worldPosition));
     }
 
     public NonNullList<ItemStack> getResult() {

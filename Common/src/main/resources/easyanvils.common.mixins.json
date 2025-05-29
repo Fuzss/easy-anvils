@@ -5,6 +5,7 @@
   "package": "${modGroup}.mixin",
   "mixins": [
     "AnvilBlockMixin",
+    "AnvilMenuMixin",
     "WorldGenRegionMixin"
   ],
   "client": [
