@@ -3,6 +3,7 @@ package fuzs.easyanvils.world.level.block.entity;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.services.CommonAbstractions;
 import fuzs.puzzleslib.api.container.v1.ContainerMenuHelper;
+import fuzs.puzzleslib.api.container.v1.ContainerSerializationHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -12,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -21,6 +21,8 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class AnvilBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
@@ -34,16 +36,15 @@ public class AnvilBlockEntity extends BaseContainerBlockEntity implements Worldl
     }
 
     @Override
-    public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.loadAdditional(compoundTag, registries);
-        this.items.clear();
-        ContainerHelper.loadAllItems(compoundTag, this.items, registries);
+    protected void loadAdditional(ValueInput compoundTag) {
+        super.loadAdditional(compoundTag);
+        ContainerSerializationHelper.loadAllItems(compoundTag, this.items);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.saveAdditional(compoundTag, registries);
-        ContainerHelper.saveAllItems(compoundTag, this.items, true, registries);
+    protected void saveAdditional(ValueOutput valueOutput) {
+        super.saveAdditional(valueOutput);
+        ContainerSerializationHelper.saveAllItems(valueOutput, this.items);
     }
 
     @Override

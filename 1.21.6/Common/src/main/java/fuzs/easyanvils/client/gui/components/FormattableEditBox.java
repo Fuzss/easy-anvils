@@ -8,7 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -112,8 +112,8 @@ public class FormattableEditBox extends AdvancedEditBox {
                 this.displayPos,
                 this.getInnerWidth(),
                 Style.EMPTY);
-        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() +
-                this.displayPos, Screen.hasShiftDown());
+        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length()
+                + this.displayPos, Screen.hasShiftDown());
 
         long millis = Util.getMillis();
         boolean tripleClick = this.doubleClick;
@@ -148,8 +148,8 @@ public class FormattableEditBox extends AdvancedEditBox {
                 this.displayPos,
                 this.getInnerWidth(),
                 Style.EMPTY);
-        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length() +
-                this.displayPos;
+        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length()
+                + this.displayPos;
 
         if (this.doubleClick) {
             // double click drag across text to select individual words
@@ -189,7 +189,7 @@ public class FormattableEditBox extends AdvancedEditBox {
         if (this.isVisible()) {
             if (this.isBordered()) {
                 ResourceLocation resourceLocation = SPRITES.get(this.isActive(), this.isFocused());
-                guiGraphics.blitSprite(RenderType::guiTextured,
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                         resourceLocation,
                         this.getX(),
                         this.getY(),
@@ -206,55 +206,70 @@ public class FormattableEditBox extends AdvancedEditBox {
                     Style.EMPTY);
             boolean bl = j >= 0 && j <= string.length();
             boolean bl2 = this.isFocused() && (Util.getMillis() - this.focusedTime) / 300L % 2L == 0L && bl;
-            int l = this.bordered ? this.getX() + 4 : this.getX();
-            int m = this.bordered ? this.getY() + (this.height - 8) / 2 : this.getY();
-            int n = l;
+            int n = this.textX;
+            int m = this.textY;
             int k = Mth.clamp(this.highlightPos - this.displayPos, 0, string.length());
-            if (k > string.length()) {
-                k = string.length();
-            }
-
             if (!string.isEmpty()) {
                 String string2 = bl ? string.substring(0, j) : string;
-                n = guiGraphics.drawString(this.font, this.formatter.apply(string2, this.displayPos), l, m, i);
+                FormattedCharSequence formattedCharSequence = this.formatter.apply(string2, this.displayPos);
+                guiGraphics.drawString(this.font, formattedCharSequence, n, m, i, this.textShadow);
+                n += this.font.width(formattedCharSequence) + 1;
             }
 
-            boolean bl3 = this.cursorPos < this.value.length() ||
-                    ComponentDecomposer.getStringLength(this.value) >= this.getMaxLength();
+            boolean bl3 = this.cursorPos < this.value.length()
+                    || ComponentDecomposer.getStringLength(this.value) >= this.getMaxLength();
             int o = n;
             if (!bl) {
-                o = j > 0 ? l + this.width : l;
-            } else if (!string.isEmpty()) {
+                o = j > 0 ? this.textX + this.width : this.textX;
+            } else if (bl3) {
                 o = n - 1;
-                --n;
+                n--;
             }
 
             if (!string.isEmpty() && bl && j < string.length()) {
-                guiGraphics.drawString(this.font, this.formatter.apply(string.substring(j), this.cursorPos), n, m, i);
+                guiGraphics.drawString(this.font,
+                        this.formatter.apply(string.substring(j), this.cursorPos),
+                        n,
+                        m,
+                        i,
+                        this.textShadow);
             }
 
             if (this.hint != null && string.isEmpty() && !this.isFocused()) {
-                guiGraphics.drawString(this.font, this.hint, m, l, i);
+                guiGraphics.drawString(this.font, this.hint, n, m, i);
             }
 
             if (!bl3 && this.suggestion != null) {
-                guiGraphics.drawString(this.font, this.suggestion, (o - 1), m, -8355712);
-            }
-
-            if (bl2 && k == j) {
-                if (!string.isEmpty()) {
-                    guiGraphics.fill(RenderType.guiOverlay(), o, m - 1, o + 1, m + 1 + 9, -3092272);
-                } else {
-                    guiGraphics.drawString(this.font, "_", o, m, i);
-                }
+                guiGraphics.drawString(this.font, this.suggestion, o - 1, m, -8355712, this.textShadow);
             }
 
             if (k != j) {
-                int p = l + FormattedStringDecomposer.stringWidth(this.font,
-                        this.value.substring(0, this.highlightPos),
-                        this.displayPos);
+                int p = this.textX + FormattedStringDecomposer.stringWidth(this.font, this.value.substring(0, k), 0);
                 this.renderHighlight(guiGraphics, o, m - 1, p - 1, m + 1 + 9);
             }
+
+            if (bl2) {
+                if (bl3) {
+                    guiGraphics.fill(o, m - 1, o + 1, m + 1 + 9, -3092272);
+                } else {
+                    guiGraphics.drawString(this.font, "_", o, m, i, this.textShadow);
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void updateTextPosition() {
+        if (this.font != null) {
+            String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
+                    this.value.substring(this.displayPos),
+                    0,
+                    this.getInnerWidth(),
+                    Style.EMPTY);
+            this.textX = this.getX() + (this.isCentered() ?
+                    (this.getWidth() - FormattedStringDecomposer.stringWidth(this.font, string, 0)) / 2 :
+                    (this.bordered ? 4 : 0));
+            this.textY = this.bordered ? this.getY() + (this.height - 8) / 2 : this.getY();
         }
     }
 

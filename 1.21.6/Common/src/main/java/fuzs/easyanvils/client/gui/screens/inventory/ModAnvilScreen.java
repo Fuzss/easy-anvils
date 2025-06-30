@@ -8,7 +8,6 @@ import fuzs.easyanvils.network.client.ServerboundRenameItemMessage;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import fuzs.puzzleslib.api.network.v4.MessageSender;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
@@ -30,12 +29,20 @@ public class ModAnvilScreen extends AnvilScreen {
 
     @Override
     protected void subInit() {
-        int i = (this.width - this.imageWidth) / 2;
-        int j = (this.height - this.imageHeight) / 2;
         if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
-            this.name = new FormattableEditBox(this.font, i + 62, j + 24, 103, 12, AnvilBlockEntity.REPAIR_COMPONENT);
+            this.name = new FormattableEditBox(this.font,
+                    this.leftPos + 62,
+                    this.topPos + 24,
+                    103,
+                    12,
+                    AnvilBlockEntity.REPAIR_COMPONENT);
         } else {
-            this.name = new EditBox(this.font, i + 62, j + 24, 103, 12, AnvilBlockEntity.REPAIR_COMPONENT);
+            this.name = new EditBox(this.font,
+                    this.leftPos + 62,
+                    this.topPos + 24,
+                    103,
+                    12,
+                    AnvilBlockEntity.REPAIR_COMPONENT);
         }
         this.name.setCanLoseFocus(false);
         this.name.setTextColor(-1);
@@ -44,13 +51,13 @@ public class ModAnvilScreen extends AnvilScreen {
         this.name.setMaxLength(50);
         this.name.setResponder(this::onNameChanged);
         this.name.setValue("");
-        this.addWidget(this.name);
-        this.setInitialFocus(this.name);
-        this.name.setEditable(false);
-        this.name.setVisible(false);
-        this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7,
-                this.topPos + this.titleLabelY,
-                this.font));
+        this.addRenderableWidget(this.name);
+        this.name.setEditable(this.menu.getSlot(0).hasItem());
+        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7,
+                    this.topPos + this.titleLabelY,
+                    this.font));
+        }
     }
 
     @Override
@@ -65,8 +72,9 @@ public class ModAnvilScreen extends AnvilScreen {
     private void onNameChanged(String input) {
         Slot slot = this.menu.getSlot(0);
         if (!slot.hasItem()) return;
-        if (!slot.getItem().has(DataComponents.CUSTOM_NAME) &&
-                input.equals(slot.getItem().getHoverName().getString())) {
+        if (!slot.getItem().has(DataComponents.CUSTOM_NAME) && input.equals(slot.getItem()
+                .getHoverName()
+                .getString())) {
             input = "";
         }
 
@@ -76,47 +84,44 @@ public class ModAnvilScreen extends AnvilScreen {
     }
 
     @Override
-    public void resize(Minecraft minecraft, int width, int height) {
-        boolean visible = this.name.isVisible();
-        super.resize(minecraft, width, height);
-        this.name.setVisible(visible);
-    }
-
-
-    @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // copied from AbstractContainerScreen super
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
+        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0XFF404040, false);
         guiGraphics.drawString(this.font,
                 this.playerInventoryTitle,
                 this.inventoryLabelX,
                 this.inventoryLabelY,
-                4210752,
+                0XFF404040,
                 false);
-        int i = this.menu.getCost();
-        if (i != 0) {
-            int j = 8453920;
+        int enchantmentLevelCost = this.menu.getCost();
+        if (enchantmentLevelCost > 0) {
+            int textColor = 0XFF80FF20;
             Component component;
-            // allow for custom max repair cost
-            int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.tooExpensiveLimit;
-            if ((maxAnvilRepairCost != -1 && i >= maxAnvilRepairCost || i == -1) &&
-                    !this.minecraft.player.getAbilities().instabuild) {
+            if (this.isTooExpensive(enchantmentLevelCost)) {
                 component = TOO_EXPENSIVE_TEXT;
-                j = 16736352;
+                textColor = 0XFFFF6060;
             } else if (!this.menu.getSlot(2).hasItem()) {
                 component = null;
             } else {
-                component = Component.translatable("container.repair.cost", i);
+                component = Component.translatable("container.repair.cost", enchantmentLevelCost);
                 if (!this.menu.getSlot(2).mayPickup(this.minecraft.player)) {
-                    j = 16736352;
+                    textColor = 0XFFFF6060;
                 }
             }
+
             if (component != null) {
                 int k = this.imageWidth - 8 - this.font.width(component) - 2;
-                guiGraphics.fill(k - 2, 67, this.imageWidth - 8, 79, 1325400064);
-                guiGraphics.drawString(this.font, component, k, 69, j);
+                guiGraphics.fill(k - 2, 67, this.imageWidth - 8, 79, 0X4F000000);
+                guiGraphics.drawString(this.font, component, k, 69, textColor);
             }
         }
+    }
+
+    private boolean isTooExpensive(int repairCost) {
+        // allow for custom max repair cost
+        int maxAnvilRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).costs.tooExpensiveLimit;
+        return (maxAnvilRepairCost != -1 && repairCost >= maxAnvilRepairCost || repairCost == -1)
+                && !this.minecraft.player.hasInfiniteMaterials();
     }
 
     @Override
@@ -125,7 +130,6 @@ public class ModAnvilScreen extends AnvilScreen {
             this.name.setValue(stack.isEmpty() ? "" : ComponentDecomposer.toFormattedString(stack.getHoverName()));
             this.name.setEditable(!stack.isEmpty());
             this.setFocused(this.name);
-            this.name.setVisible(!stack.isEmpty());
         }
     }
 }

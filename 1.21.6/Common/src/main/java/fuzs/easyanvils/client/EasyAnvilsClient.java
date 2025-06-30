@@ -13,56 +13,34 @@ import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockStateResolverContext;
 import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
-import fuzs.puzzleslib.api.client.event.v1.ClientLifecycleEvents;
+import fuzs.puzzleslib.api.client.core.v1.context.RenderTypesContext;
 import fuzs.puzzleslib.api.client.gui.v2.tooltip.ItemTooltipRegistry;
-import fuzs.puzzleslib.api.client.renderer.v1.RenderTypeHelper;
 import fuzs.puzzleslib.api.client.renderer.v1.model.ModelLoadingHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class EasyAnvilsClient implements ClientModConstructor {
 
     @Override
-    public void onConstructMod() {
-        registerEventHandlers();
-    }
-
-    private static void registerEventHandlers() {
-        ClientLifecycleEvents.STARTED.register((Minecraft minecraft) -> {
-            // run a custom implementation here, the appropriate method in client mod constructor runs together with other mods, so we might miss some entries
-            for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
-                RenderType renderType = RenderTypeHelper.getRenderType(entry.getKey());
-                RenderTypeHelper.registerRenderType(entry.getValue(), renderType);
-            }
-        });
-    }
-
-    @Override
     public void onClientSetup() {
-        ItemTooltipRegistry.registerItemTooltip(Items.NAME_TAG,
-                (Item item, ItemStack itemStack, Item.TooltipContext tooltipContext, TooltipFlag tooltipFlag, Consumer<Component> tooltipLineConsumer) -> {
-                    if (!EasyAnvils.CONFIG.get(ClientConfig.class).nameTagTooltip) return;
-                    if (!EasyAnvils.CONFIG.getHolder(ServerConfig.class).isAvailable() ||
-                            !EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
-                        return;
-                    }
-                    tooltipLineConsumer.accept(NameTagEditScreen.DESCRIPTION_COMPONENT);
-                });
+        ItemTooltipRegistry.ITEM.registerItemTooltipLines(Items.NAME_TAG, (Item item) -> {
+            if (!EasyAnvils.CONFIG.get(ClientConfig.class).nameTagTooltip) return Collections.emptyList();
+            if (!EasyAnvils.CONFIG.getHolder(ServerConfig.class).isAvailable()
+                    || !EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
+                return Collections.emptyList();
+            }
+            return Collections.singletonList(NameTagEditScreen.DESCRIPTION_COMPONENT);
+        });
     }
 
     @Override
@@ -97,5 +75,13 @@ public class EasyAnvilsClient implements ClientModConstructor {
     @Override
     public void onRegisterBlockEntityRenderers(BlockEntityRenderersContext context) {
         context.registerBlockEntityRenderer(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE.value(), AnvilRenderer::new);
+    }
+
+    @Override
+    public void onRegisterBlockRenderTypes(RenderTypesContext<Block> context) {
+        // this runs deferred by default, so we should have all entries from other mods available to us
+        for (Map.Entry<Block, Block> entry : BlockConversionHandler.getBlockConversions().entrySet()) {
+            context.registerChunkRenderType(entry.getValue(), context.getChunkRenderType(entry.getKey()));
+        }
     }
 }

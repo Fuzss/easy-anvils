@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.MenuType;
 public class NeoForgeModRegistry {
     static final RegistryManager REGISTRIES = RegistryManager.from(EasyAnvils.MOD_ID);
     public static final Holder.Reference<MenuType<ModAnvilMenu>> ANVIL_MENU_TYPE = REGISTRIES.registerMenuType("repair",
-            () -> NeoForgeAnvilMenu::new);
+            NeoForgeAnvilMenu::new);
 
     public static void bootstrap() {
         // NO-OP
