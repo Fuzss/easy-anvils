@@ -206,53 +206,55 @@ public class FormattableEditBox extends AdvancedEditBox {
                     Style.EMPTY);
             boolean bl = j >= 0 && j <= string.length();
             boolean bl2 = this.isFocused() && (Util.getMillis() - this.focusedTime) / 300L % 2L == 0L && bl;
-            int n = this.textX;
-            int m = this.textY;
-            int k = Mth.clamp(this.highlightPos - this.displayPos, 0, string.length());
+            int k = this.textX;
+            int l = Mth.clamp(this.highlightPos - this.displayPos, 0, string.length());
             if (!string.isEmpty()) {
                 String string2 = bl ? string.substring(0, j) : string;
                 FormattedCharSequence formattedCharSequence = this.formatter.apply(string2, this.displayPos);
-                guiGraphics.drawString(this.font, formattedCharSequence, n, m, i, this.textShadow);
-                n += this.font.width(formattedCharSequence) + 1;
+                guiGraphics.drawString(this.font, formattedCharSequence, k, this.textY, i, this.textShadow);
+                k += this.font.width(formattedCharSequence) + 1;
             }
 
             boolean bl3 = this.cursorPos < this.value.length()
                     || ComponentDecomposer.getStringLength(this.value) >= this.getMaxLength();
-            int o = n;
+            int m = k;
             if (!bl) {
-                o = j > 0 ? this.textX + this.width : this.textX;
+                m = j > 0 ? this.textX + this.width : this.textX;
             } else if (bl3) {
-                o = n - 1;
-                n--;
+                m = k - 1;
+                k--;
             }
 
             if (!string.isEmpty() && bl && j < string.length()) {
                 guiGraphics.drawString(this.font,
                         this.formatter.apply(string.substring(j), this.cursorPos),
-                        n,
-                        m,
+                        k,
+                        this.textY,
                         i,
                         this.textShadow);
             }
 
             if (this.hint != null && string.isEmpty() && !this.isFocused()) {
-                guiGraphics.drawString(this.font, this.hint, n, m, i);
+                guiGraphics.drawString(this.font, this.hint, k, this.textY, i);
             }
 
             if (!bl3 && this.suggestion != null) {
-                guiGraphics.drawString(this.font, this.suggestion, o - 1, m, -8355712, this.textShadow);
+                guiGraphics.drawString(this.font, this.suggestion, m - 1, this.textY, -8355712, this.textShadow);
             }
 
-            if (k != j) {
-                int p = this.textX + FormattedStringDecomposer.stringWidth(this.font, this.value.substring(0, k), 0);
-                this.renderHighlight(guiGraphics, o, m - 1, p - 1, m + 1 + 9);
+            if (l != j) {
+                int n = this.textX + FormattedStringDecomposer.stringWidth(this.font, this.value.substring(0, l), 0);
+                guiGraphics.textHighlight(Math.min(m, this.getX() + this.width),
+                        this.textY - 1,
+                        Math.min(n - 1, this.getX() + this.width),
+                        this.textY + 1 + 9);
             }
 
             if (bl2) {
                 if (bl3) {
-                    guiGraphics.fill(o, m - 1, o + 1, m + 1 + 9, -3092272);
+                    guiGraphics.fill(m, this.textY - 1, m + 1, this.textY + 1 + 9, -3092272);
                 } else {
-                    guiGraphics.drawString(this.font, "_", o, m, i, this.textShadow);
+                    guiGraphics.drawString(this.font, "_", m, this.textY, i, this.textShadow);
                 }
             }
         }
