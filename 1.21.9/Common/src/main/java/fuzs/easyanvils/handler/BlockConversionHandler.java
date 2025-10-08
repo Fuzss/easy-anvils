@@ -80,7 +80,7 @@ public class BlockConversionHandler {
                 player.displayClientMessage(Component.empty()
                         .append(INVALID_BLOCK_COMPONENT)
                         .withStyle(ChatFormatting.RED), true);
-                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
+                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide()));
             } else {
                 return EventResultHolder.pass();
             }
@@ -96,6 +96,7 @@ public class BlockConversionHandler {
                     setBlockForItem(unalteredBlocks, blockItem, block);
                 }
             }
+
             BLOCK_CONVERSIONS.forEach(BlockConversionHelper::copyBoundTags);
         };
     }
@@ -119,6 +120,7 @@ public class BlockConversionHandler {
                 return;
             }
         }
+
         if (oldBlock.builtInRegistryHolder().is(tagKey)) {
             BlockConversionHelper.setBlockForItem(blockItem, oldBlock);
         } else {
@@ -163,6 +165,7 @@ public class BlockConversionHandler {
         for (Map.Entry<Property<?>, Comparable<?>> entry : oldBlockState.getValues().entrySet()) {
             newBlockState = newBlockState.trySetValue((Property<T>) entry.getKey(), (V) entry.getValue());
         }
+
         return newBlockState;
     }
 }

@@ -105,8 +105,9 @@ public abstract class ModAnvilMenu extends AnvilMenu {
             ItemStack output = primaryItemStack.copy();
             ItemEnchantments.Mutable leftEnchantments = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(
                     output));
-            int baseRepairCost = primaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0) +
-                    (secondaryItemStack.isEmpty() ? 0 : secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0));
+            int baseRepairCost =
+                    primaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0) + (secondaryItemStack.isEmpty() ? 0 :
+                            secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0));
             // no prior work penalty, or fixed
             baseRepairCost = EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.priorWorkPenalty.operator.applyAsInt(
                     baseRepairCost);
@@ -120,8 +121,8 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                 isBook = secondaryItemStack.has(DataComponents.STORED_ENCHANTMENTS);
                 if (output.isDamageableItem() && output.isValidRepairItem(secondaryItemStack)) {
                     int l2 = (int) Math.min(output.getDamageValue(),
-                            Math.floor(output.getMaxDamage() *
-                                    EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
+                            Math.floor(output.getMaxDamage()
+                                    * EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
                     if (l2 <= 0) {
                         this.resultSlots.setItem(0, ItemStack.EMPTY);
                         this.setCost(0);
@@ -135,8 +136,8 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                         output.setDamageValue(j3);
                         repairOperationCost += EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialUnitCost;
                         l2 = (int) Math.min(output.getDamageValue(),
-                                Math.floor(output.getMaxDamage() *
-                                        EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
+                                Math.floor(output.getMaxDamage()
+                                        * EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithMaterialRestoredDurability));
                     }
 
                     this.repairItemCountCost = repairMaterials;
@@ -150,8 +151,8 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                     if (output.isDamageableItem() && !isBook) {
                         int l = primaryItemStack.getMaxDamage() - primaryItemStack.getDamageValue();
                         int i1 = secondaryItemStack.getMaxDamage() - secondaryItemStack.getDamageValue();
-                        int j1 = i1 + (int) Math.floor(output.getMaxDamage() *
-                                EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithOtherItemBonusDurability);
+                        int j1 = i1 + (int) Math.floor(output.getMaxDamage()
+                                * EasyAnvils.CONFIG.get(ServerConfig.class).costs.repairWithOtherItemBonusDurability);
                         int k1 = l + j1;
                         int l1 = output.getMaxDamage() - k1;
                         if (l1 < 0) {
@@ -180,8 +181,8 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                         }
 
                         for (Holder<Enchantment> leftHolder : leftEnchantments.keySet()) {
-                            if (!leftHolder.equals(rightHolder) &&
-                                    !Enchantment.areCompatible(rightHolder, leftHolder)) {
+                            if (!leftHolder.equals(rightHolder) && !Enchantment.areCompatible(rightHolder,
+                                    leftHolder)) {
                                 compatibleWithItem = false;
                                 ++enchantOperationCost;
                             }
@@ -243,7 +244,8 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                     hasRenamedItem = true;
                     output.remove(DataComponents.CUSTOM_NAME);
                 }
-            } else if (!itemName.equals(ComponentDecomposer.toFormattedString(primaryItemStack.getHoverName()))) {
+            } else if (!Objects.equals(ComponentDecomposer.toFormattedComponent(itemName),
+                    primaryItemStack.getHoverName())) {
                 renameOperationCost =
                         EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(primaryItemStack) ? 0 :
                                 1;
@@ -261,9 +263,9 @@ public abstract class ModAnvilMenu extends AnvilMenu {
             } else {
 
                 int newCost;
-                if (enchantOperationCost == 0 &&
-                        EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts ==
-                                RenameAndRepairCost.FIXED) {
+                if (enchantOperationCost == 0
+                        && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts
+                        == RenameAndRepairCost.FIXED) {
                     newCost = allOperationsCost;
                 } else {
                     newCost = baseRepairCost + allOperationsCost;
@@ -282,9 +284,9 @@ public abstract class ModAnvilMenu extends AnvilMenu {
             if (hasNoLimit) maxAnvilRepairCost = 40;
             if (this.getCost() >= maxAnvilRepairCost) {
 
-                if (enchantOperationCost == 0 &&
-                        EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts ==
-                                RenameAndRepairCost.LIMITED) {
+                if (enchantOperationCost == 0
+                        && EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.renameAndRepairCosts
+                        == RenameAndRepairCost.LIMITED) {
                     this.setCost(maxAnvilRepairCost - 1);
                 } else if (!hasNoLimit && !this.player.getAbilities().instabuild) {
                     // allow for custom max enchantment levels limit
@@ -295,15 +297,15 @@ public abstract class ModAnvilMenu extends AnvilMenu {
             if (!output.isEmpty()) {
 
                 int outputRepairCost = output.getOrDefault(DataComponents.REPAIR_COST, 0);
-                if (!secondaryItemStack.isEmpty() &&
-                        outputRepairCost < secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0)) {
+                if (!secondaryItemStack.isEmpty()
+                        && outputRepairCost < secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0)) {
                     outputRepairCost = secondaryItemStack.getOrDefault(DataComponents.REPAIR_COST, 0);
                 }
 
                 if (allOperationsCost > 0) {
-                    if (enchantOperationCost > 0 && (!isBook || !primaryItemStack.is(Items.ENCHANTED_BOOK) ||
-                            !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeEnchantsForBooks) ||
-                            !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeRenamesAndRepairs) {
+                    if (enchantOperationCost > 0 && (!isBook || !primaryItemStack.is(Items.ENCHANTED_BOOK)
+                            || !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeEnchantsForBooks)
+                            || !EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.penaltyFreeRenamesAndRepairs) {
                         outputRepairCost = AnvilMenu.calculateIncreasedRepairCost(outputRepairCost);
                     }
                 }

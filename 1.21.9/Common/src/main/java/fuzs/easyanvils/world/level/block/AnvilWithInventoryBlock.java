@@ -3,6 +3,7 @@ package fuzs.easyanvils.world.level.block;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.Containers;
@@ -25,26 +26,27 @@ public class AnvilWithInventoryBlock extends AnvilBlock implements EntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) {
+    protected InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
-        } else if (level.getBlockEntity(pos) instanceof AnvilBlockEntity blockEntity) {
+        } else if (level.getBlockEntity(blockPos) instanceof AnvilBlockEntity blockEntity) {
             player.openMenu(blockEntity);
             player.awardStat(Stats.INTERACT_WITH_ANVIL);
         }
+
         return InteractionResult.CONSUME;
     }
 
     @Override
     @Nullable
-    public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+    public MenuProvider getMenuProvider(BlockState blockState, Level level, BlockPos blockPos) {
         // copied from BaseEntityBlock, used for spectator mode
-        return level.getBlockEntity(pos) instanceof MenuProvider menuProvider ? menuProvider : null;
+        return level.getBlockEntity(blockPos) instanceof MenuProvider menuProvider ? menuProvider : null;
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ModRegistry.ANVIL_BLOCK_ENTITY_TYPE.value().create(pos, state);
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return ModRegistry.ANVIL_BLOCK_ENTITY_TYPE.value().create(blockPos, blockState);
     }
 
     @Override
@@ -58,7 +60,7 @@ public class AnvilWithInventoryBlock extends AnvilBlock implements EntityBlock {
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
-        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(level.getBlockEntity(pos));
+    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos blockPos, Direction direction) {
+        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(level.getBlockEntity(blockPos));
     }
 }

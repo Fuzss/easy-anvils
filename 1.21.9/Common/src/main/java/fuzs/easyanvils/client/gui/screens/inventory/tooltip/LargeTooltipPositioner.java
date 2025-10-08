@@ -17,14 +17,11 @@ public class LargeTooltipPositioner implements ClientTooltipPositioner {
 
     @Override
     public Vector2ic positionTooltip(int screenWidth, int screenHeight, int mouseX, int mouseY, int tooltipWidth, int tooltipHeight) {
-
         if (this.screenRectangle != null) {
-
             // Adapted from BelowOrAboveWidgetTooltipPositioner
             Vector2i vector2i = new Vector2i();
             vector2i.x = this.screenRectangle.right() + 5;
             vector2i.y = this.screenRectangle.getCenterInAxis(ScreenAxis.VERTICAL) - tooltipHeight / 2;
-
             if (vector2i.x + tooltipWidth > screenWidth) {
                 vector2i.x = this.screenRectangle.left() - 5 - tooltipWidth;
             }
@@ -37,7 +34,6 @@ public class LargeTooltipPositioner implements ClientTooltipPositioner {
 
             return vector2i;
         } else {
-
             // Adapted from DefaultTooltipPositioner
             Vector2i vector2i = new Vector2i(mouseX, mouseY).add(12, -Math.max(12, tooltipHeight / 3));
             if (vector2i.x + tooltipWidth > screenWidth) {

@@ -1,18 +1,21 @@
 package fuzs.easyanvils.client.gui.components;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +24,7 @@ import java.util.List;
 /**
  * An extension to {@link EditBox} that supports {@link net.minecraft.ChatFormatting} by allowing '§' to be used.
  */
-public class FormattableEditBox extends AdvancedEditBox {
+public class FormattableEditBox extends EditBox {
 
     public FormattableEditBox(Font font, int x, int y, int width, int height, Component message) {
         this(font, x, y, width, height, null, message);
@@ -30,7 +33,7 @@ public class FormattableEditBox extends AdvancedEditBox {
     public FormattableEditBox(Font font, int x, int y, int width, int height, @Nullable EditBox editBox, Component message) {
         super(font, x, y, width, height, editBox, message);
         // custom formatter for applying formatting codes directly to the text preview
-        this.formatter = (String formatterValue, Integer position) -> {
+        this.addFormatter((String formatterValue, int position) -> {
             List<FormattedCharSequence> list = Lists.newArrayList();
             FormattedStringDecomposer.LengthLimitedCharSink sink = new FormattedStringDecomposer.LengthLimitedCharSink(
                     formatterValue.length(),
@@ -38,12 +41,14 @@ public class FormattableEditBox extends AdvancedEditBox {
             // format the whole value, we need the formatting to apply correctly and not get interrupted by the cursor being placed in between a formatting code
             FormattedStringDecomposer.iterateFormatted(this.value, Style.EMPTY, (index, style, j) -> {
                 if (sink.accept(index, style, j)) {
-                    list.add(formattedCharSink -> formattedCharSink.accept(index, style, j));
+                    list.add((FormattedCharSink formattedCharSink) -> formattedCharSink.accept(index, style, j));
                 }
+
                 return true;
             });
+
             return FormattedCharSequence.composite(list);
-        };
+        });
     }
 
     @Override
@@ -74,6 +79,7 @@ public class FormattableEditBox extends AdvancedEditBox {
         if (stringLength > 0) {
             string = ComponentDecomposer.removeLast(textToWrite, stringLength);
         }
+
         String string2 = new StringBuilder(this.value).replace(i, j, string).toString();
         if (this.filter.test(string2)) {
             this.value = string2;
@@ -85,13 +91,13 @@ public class FormattableEditBox extends AdvancedEditBox {
     }
 
     @Override
-    public boolean charTyped(char codePoint, int modifiers) {
+    public boolean charTyped(CharacterEvent characterEvent) {
         if (!this.canConsumeInput()) {
             return false;
             // use our custom check for allowed chars so '§' is permitted
-        } else if (FormattedStringDecomposer.isAllowedChatCharacter(codePoint)) {
+        } else if (FormattedStringDecomposer.isAllowedChatCharacter((char) characterEvent.codepoint())) {
             if (this.isEditable) {
-                this.insertText(Character.toString(codePoint));
+                this.insertText(characterEvent.codepointAsString());
             }
 
             return true;
@@ -101,87 +107,15 @@ public class FormattableEditBox extends AdvancedEditBox {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
-        int i = Mth.floor(mouseX) - this.getX();
-        if (this.bordered) {
-            i -= 4;
-        }
-
+    protected int findClickedPositionInText(MouseButtonEvent event) {
+        int i = Math.min(Mth.floor(event.x()) - this.textX, this.getInnerWidth());
         String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
                 this.value,
                 this.displayPos,
                 this.getInnerWidth(),
                 Style.EMPTY);
-        this.moveCursorTo(FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length()
-                + this.displayPos, Screen.hasShiftDown());
-
-        long millis = Util.getMillis();
-        boolean tripleClick = this.doubleClick;
-        this.doubleClick = millis - this.lastClickTime < 250L;
-        if (this.doubleClick) {
-            if (tripleClick) {
-                // triple click to select all text in the edit box ('§' and the subsequent char)
-                this.moveCursorToEnd(false);
-                this.setHighlightPos(0);
-            } else {
-                // double click to select the clicked word
-                // highlight positions is right selection boundary, cursor position is left selection boundary
-                this.doubleClickHighlightPos = this.getWordPosition(1, this.getCursorPosition(), false);
-                this.moveCursorTo(this.doubleClickHighlightPos, false);
-                this.doubleClickCursorPos = this.getWordPosition(-1, this.getCursorPosition(), false);
-                this.moveCursorTo(this.doubleClickCursorPos, true);
-            }
-        }
-
-        this.lastClickTime = millis;
-    }
-
-    @Override
-    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
-        int i = Mth.floor(mouseX) - this.getX();
-        if (this.bordered) {
-            i -= 4;
-        }
-
-        String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
-                this.value,
-                this.displayPos,
-                this.getInnerWidth(),
-                Style.EMPTY);
-        int mousePosition = FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY).length()
-                + this.displayPos;
-
-        if (this.doubleClick) {
-            // double click drag across text to select individual words
-            // dragging outside the edit box will select everything until beginning / end
-            if (this.isMouseOver(mouseX, mouseY)) {
-                int rightBoundary = this.getWordPosition(1, mousePosition, false);
-                this.moveCursorTo(Math.max(this.doubleClickHighlightPos, rightBoundary), false);
-                int leftBoundary = this.getWordPosition(-1, mousePosition, false);
-                this.moveCursorTo(Math.min(this.doubleClickCursorPos, leftBoundary), true);
-            } else {
-                if (mousePosition > this.doubleClickHighlightPos) {
-                    this.moveCursorToEnd(false);
-                } else {
-                    this.moveCursorTo(this.doubleClickHighlightPos, false);
-                }
-                if (mousePosition < this.doubleClickCursorPos) {
-                    this.moveCursorToStart(true);
-                } else {
-                    this.moveCursorTo(this.doubleClickCursorPos, true);
-                }
-            }
-        } else {
-            // drag across text to select individual letters
-            // dragging outside the edit box will select everything until beginning / end
-            if (this.isMouseOver(mouseX, mouseY)) {
-                this.moveCursorTo(mousePosition, true);
-            } else if (this.highlightPos < mousePosition) {
-                this.moveCursorToEnd(true);
-            } else {
-                this.moveCursorToStart(true);
-            }
-        }
+        return this.displayPos + FormattedStringDecomposer.plainHeadByWidth(this.font, string, 0, i, Style.EMPTY)
+                .length();
     }
 
     @Override
@@ -210,12 +144,12 @@ public class FormattableEditBox extends AdvancedEditBox {
             int l = Mth.clamp(this.highlightPos - this.displayPos, 0, string.length());
             if (!string.isEmpty()) {
                 String string2 = bl ? string.substring(0, j) : string;
-                FormattedCharSequence formattedCharSequence = this.formatter.apply(string2, this.displayPos);
+                FormattedCharSequence formattedCharSequence = this.applyFormat(string2, this.displayPos);
                 guiGraphics.drawString(this.font, formattedCharSequence, k, this.textY, i, this.textShadow);
                 k += this.font.width(formattedCharSequence) + 1;
             }
 
-            boolean bl3 = this.cursorPos < this.value.length()
+            boolean bl3 = this.cursorPos < ComponentDecomposer.getStringLength(this.value)
                     || ComponentDecomposer.getStringLength(this.value) >= this.getMaxLength();
             int m = k;
             if (!bl) {
@@ -227,7 +161,7 @@ public class FormattableEditBox extends AdvancedEditBox {
 
             if (!string.isEmpty() && bl && j < string.length()) {
                 guiGraphics.drawString(this.font,
-                        this.formatter.apply(string.substring(j), this.cursorPos),
+                        this.applyFormat(string.substring(j), this.cursorPos),
                         k,
                         this.textY,
                         i,
@@ -252,10 +186,14 @@ public class FormattableEditBox extends AdvancedEditBox {
 
             if (bl2) {
                 if (bl3) {
-                    guiGraphics.fill(m, this.textY - 1, m + 1, this.textY + 1 + 9, -3092272);
+                    guiGraphics.fill(m, this.textY - 1, m + 1, this.textY + 1 + 9, i);
                 } else {
                     guiGraphics.drawString(this.font, "_", m, this.textY, i, this.textShadow);
                 }
+            }
+
+            if (this.isHovered()) {
+                guiGraphics.requestCursor(this.isEditable ? CursorTypes.IBEAM : CursorTypes.NOT_ALLOWED);
             }
         }
     }

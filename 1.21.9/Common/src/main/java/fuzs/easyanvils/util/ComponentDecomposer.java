@@ -10,15 +10,18 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.StringDecomposer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class ComponentDecomposer {
-    private static final Style EMPTY = Style.EMPTY.withColor(ChatFormatting.WHITE.getColor()).withBold(false).withItalic(false).withUnderlined(false).withStrikethrough(false).withObfuscated(false);
+    private static final Style EMPTY = Style.EMPTY.withColor(ChatFormatting.WHITE.getColor())
+            .withBold(false)
+            .withItalic(false)
+            .withUnderlined(false)
+            .withStrikethrough(false)
+            .withObfuscated(false);
 
     public static String toFormattedString(Component component) {
         StringBuilder builder = new StringBuilder();
@@ -33,26 +36,45 @@ public class ComponentDecomposer {
         return toLegacyFormatting(style).stream()
                 .map(ChatFormatting::toString)
                 .reduce(String::concat)
-                .map(formattings -> formattings.concat(string).concat(ChatFormatting.RESET.toString()))
+                .map((String formats) -> formats.concat(string).concat(ChatFormatting.RESET.toString()))
                 .orElse(string);
     }
 
     private static List<ChatFormatting> toLegacyFormatting(Style style) {
-        List<ChatFormatting> formattings = Lists.newArrayList();
-        if (style.isEmpty()) return formattings;
+        List<ChatFormatting> formats = new ArrayList<>();
+        if (style.isEmpty()) {
+            return formats;
+        }
+
         TextColor textColor = style.getColor();
         if (textColor != null) {
             ChatFormatting chatFormatting = ChatFormatting.getByName(textColor.toString());
             if (chatFormatting != null) {
-                formattings.add(chatFormatting);
+                formats.add(chatFormatting);
             }
         }
-        if (style.isBold()) formattings.add(ChatFormatting.BOLD);
-        if (style.isItalic()) formattings.add(ChatFormatting.ITALIC);
-        if (style.isUnderlined()) formattings.add(ChatFormatting.UNDERLINE);
-        if (style.isStrikethrough()) formattings.add(ChatFormatting.STRIKETHROUGH);
-        if (style.isObfuscated()) formattings.add(ChatFormatting.OBFUSCATED);
-        return ImmutableList.copyOf(formattings);
+
+        if (style.isBold()) {
+            formats.add(ChatFormatting.BOLD);
+        }
+
+        if (style.isItalic()) {
+            formats.add(ChatFormatting.ITALIC);
+        }
+
+        if (style.isUnderlined()) {
+            formats.add(ChatFormatting.UNDERLINE);
+        }
+
+        if (style.isStrikethrough()) {
+            formats.add(ChatFormatting.STRIKETHROUGH);
+        }
+
+        if (style.isObfuscated()) {
+            formats.add(ChatFormatting.OBFUSCATED);
+        }
+
+        return ImmutableList.copyOf(formats);
     }
 
     public static Component toFormattedComponent(@Nullable String value) {
@@ -70,17 +92,24 @@ public class ComponentDecomposer {
                 if (!componentEntry.getValue().isEmpty()) {
                     componentEntry.updateValue(s -> s.substring(0, s.length() - 1));
                 }
+
                 if (componentEntry.getValue().isEmpty()) {
                     componentEntries.pollLast();
                 }
             }
         }
-        return componentEntries.stream().map(entry -> applyLegacyFormatting(entry.getValue(), entry.getStyle())).collect(Collectors.joining());
+
+        return componentEntries.stream()
+                .map(entry -> applyLegacyFormatting(entry.getValue(), entry.getStyle()))
+                .collect(Collectors.joining());
     }
 
     private static Deque<ComponentEntry> toComponentEntries(@Nullable String value) {
-        Deque<ComponentEntry> values = Lists.newLinkedList();
-        if (value == null) return values;
+        Deque<ComponentEntry> values = new LinkedList<>();
+        if (value == null) {
+            return values;
+        }
+
         AtomicBoolean resetStyle = new AtomicBoolean(true);
         StringDecomposer.iterateFormatted(value, EMPTY, (int index, Style style, int codePoint) -> {
             ComponentEntry last = values.peekLast();
@@ -89,9 +118,11 @@ public class ComponentDecomposer {
             } else {
                 values.offerLast(new ComponentEntry(codePoint, style));
             }
+
             if (style != EMPTY) {
                 resetStyle.set(false);
             }
+
             return true;
         });
         // when no formatting codes have been specified fall back to empty style so that vanilla italic name for renamed /
@@ -99,6 +130,7 @@ public class ComponentDecomposer {
         if (resetStyle.get()) {
             values.forEach(ComponentEntry::resetStyle);
         }
+
         return values;
     }
 

@@ -1,5 +1,6 @@
 package fuzs.easyanvils.client.gui.screens.inventory;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.components.FormattableEditBox;
 import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
@@ -11,6 +12,7 @@ import fuzs.puzzleslib.api.network.v4.MessageSender;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -61,12 +63,12 @@ public class ModAnvilScreen extends AnvilScreen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.getFocused() == this.name && this.isDragging() && button == 0) {
-            return this.getFocused().mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    public boolean mouseDragged(MouseButtonEvent mouseButtonEvent, double dragX, double dragY) {
+        if (this.getFocused() == this.name && this.isDragging() && mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+            return this.getFocused().mouseDragged(mouseButtonEvent, dragX, dragY);
+        } else {
+            return super.mouseDragged(mouseButtonEvent, dragX, dragY);
         }
-
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     private void onNameChanged(String input) {

@@ -30,8 +30,9 @@ public record ClientboundAnvilRepairMessage(BlockPos blockPos,
                 // play repair sound
                 context.level().levelEvent(LevelEvent.SOUND_ANVIL_USED, ClientboundAnvilRepairMessage.this.blockPos, 0);
                 // show block breaking particles for anvil without playing breaking sound
-                context.client().particleEngine.destroy(ClientboundAnvilRepairMessage.this.blockPos,
-                        ClientboundAnvilRepairMessage.this.blockState);
+                context.level()
+                        .addDestroyBlockEffect(ClientboundAnvilRepairMessage.this.blockPos,
+                                ClientboundAnvilRepairMessage.this.blockState);
             }
         };
     }

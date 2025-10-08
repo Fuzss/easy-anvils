@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.AbstractStringWidget;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.tooltip.BelowOrAboveWidgetTooltipPositioner;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
@@ -62,16 +63,16 @@ public class FormattingGuideWidget extends AbstractStringWidget {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean doubleClick) {
         return false;
     }
 
-    private static FormattedCharSequence getVisualOrder(FormattedText text) {
+    private static FormattedCharSequence getVisualOrder(FormattedText formattedText) {
         return (FormattedCharSink formattedCharSink) -> {
-            return text.visit((Style style, String string) -> {
-                // this is the same iterate method we use for styling anvil & name tag edit box contents which will keep formatting codes intact
-                // it will apply them to ensuing characters though, which is not an issue here
-                // as all components containing formatting codes consist of two characters representing the formatting code
+            return formattedText.visit((Style style, String string) -> {
+                // This is the same iterate method we use for styling anvil & name tag edit box contents which will keep formatting codes intact.
+                // It will apply them to ensuing characters, though, which is not an issue here.
+                // As all components containing formatting codes consist of two characters representing the formatting code.
                 return FormattedStringDecomposer.iterateFormatted(string, style, formattedCharSink) ? Optional.empty() :
                         FormattedText.STOP_ITERATION;
             }, Style.EMPTY).isPresent();

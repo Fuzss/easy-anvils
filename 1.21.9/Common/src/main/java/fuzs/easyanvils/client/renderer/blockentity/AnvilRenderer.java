@@ -3,84 +3,102 @@ package fuzs.easyanvils.client.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import fuzs.easyanvils.EasyAnvils;
+import fuzs.easyanvils.client.renderer.blockentity.state.AnvilRenderState;
 import fuzs.easyanvils.config.ClientConfig;
-import net.minecraft.client.renderer.MultiBufferSource;
+import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.core.Direction;
-import net.minecraft.world.Container;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AnvilBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-public class AnvilRenderer implements BlockEntityRenderer<BlockEntity> {
-    private final ItemRenderer itemRenderer;
+import java.util.ArrayList;
+
+public class AnvilRenderer implements BlockEntityRenderer<AnvilBlockEntity, AnvilRenderState> {
+    private final ItemModelResolver itemModelResolver;
 
     public AnvilRenderer(BlockEntityRendererProvider.Context context) {
-        this.itemRenderer = context.getItemRenderer();
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(BlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, Vec3 cameraPosition) {
-        if (!EasyAnvils.CONFIG.get(ClientConfig.class).renderAnvilContents) return;
-        Direction direction = blockEntity.getBlockState().getValue(AnvilBlock.FACING);
-        int posData = (int) blockEntity.getBlockPos().asLong();
-        this.renderFlatItem(blockEntity.getLevel(), 0,
-                ((Container) blockEntity).getItem(0),
-                direction,
-                poseStack,
-                bufferSource,
-                packedLight,
-                packedOverlay,
-                posData);
-        this.renderFlatItem(blockEntity.getLevel(), 1,
-                ((Container) blockEntity).getItem(1),
-                direction,
-                poseStack,
-                bufferSource,
-                packedLight,
-                packedOverlay,
-                posData);
+    public AnvilRenderState createRenderState() {
+        return new AnvilRenderState();
     }
 
-    private void renderFlatItem(Level level, int index, ItemStack itemStack, Direction direction, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, int posData) {
-        if (itemStack.isEmpty()) return;
-        poseStack.pushPose();
-        poseStack.translate(0.0, 1.0375, 0.0);
-        poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
-        boolean mirrored = (direction.getAxisDirection().getStep() == 1 ? 1 : 0) != index % 2;
-        switch (direction.getAxis()) {
-            case X -> {
-                if (mirrored) {
-                    poseStack.translate(0.25, -0.5, 0.0);
-                } else {
-                    poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-                    poseStack.translate(-0.75, 0.5, 0.0);
-                }
-            }
-            case Z -> {
-                if (mirrored) {
-                    poseStack.mulPose(Axis.ZN.rotationDegrees(90.0F));
-                    poseStack.translate(0.25, 0.5, 0.0);
-                } else {
-                    poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
-                    poseStack.translate(-0.75, -0.5, 0.0);
-                }
+    @Override
+    public void extractRenderState(AnvilBlockEntity blockEntity, AnvilRenderState renderState, float partialTick, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity,
+                renderState,
+                partialTick,
+                cameraPosition,
+                breakProgress);
+        int position = (int) blockEntity.getBlockPos().asLong();
+        renderState.items = new ArrayList<>();
+        if (EasyAnvils.CONFIG.get(ClientConfig.class).renderAnvilContents) {
+            for (int i = 0; i < blockEntity.getContainerSize(); i++) {
+                ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
+                this.itemModelResolver.updateForTopItem(itemStackRenderState,
+                        blockEntity.getItem(i),
+                        ItemDisplayContext.FIXED,
+                        blockEntity.getLevel(),
+                        null,
+                        position + i);
+                renderState.items.add(itemStackRenderState);
             }
         }
-        poseStack.scale(0.375F, 0.375F, 0.375F);
-        this.itemRenderer.renderStatic(itemStack,
-                ItemDisplayContext.FIXED,
-                packedLight,
-                packedOverlay,
-                poseStack,
-                bufferSource,
-                level,
-                posData + index);
-        poseStack.popPose();
+
+        // light is normally always 0 since it checks inside the crafting table block which is solid, but contents are rendered in the block above
+        renderState.itemLightCoords = blockEntity.getLevel() != null ?
+                LevelRenderer.getLightColor(blockEntity.getLevel(), blockEntity.getBlockPos().above()) : 0XF000F0;
+        renderState.direction = blockEntity.getBlockState().getValue(AnvilBlock.FACING);
+    }
+
+    @Override
+    public void submit(AnvilRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
+        for (int i = 0; i < renderState.items.size(); i++) {
+            ItemStackRenderState itemStackRenderState = renderState.items.get(i);
+            if (!itemStackRenderState.isEmpty()) {
+                poseStack.pushPose();
+                poseStack.translate(0.0F, 1.0375F, 0.0F);
+                poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
+                boolean isMirrored = (renderState.direction.getAxisDirection().getStep() == 1 ? 1 : 0) != i % 2;
+                switch (renderState.direction.getAxis()) {
+                    case X -> {
+                        if (isMirrored) {
+                            poseStack.translate(0.25F, -0.5F, 0.0F);
+                        } else {
+                            poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+                            poseStack.translate(-0.75F, 0.5F, 0.0F);
+                        }
+                    }
+                    case Z -> {
+                        if (isMirrored) {
+                            poseStack.mulPose(Axis.ZN.rotationDegrees(90.0F));
+                            poseStack.translate(0.25F, 0.5F, 0.0F);
+                        } else {
+                            poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                            poseStack.translate(-0.75F, -0.5F, 0.0F);
+                        }
+                    }
+                }
+
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+                itemStackRenderState.submit(poseStack,
+                        nodeCollector,
+                        renderState.itemLightCoords,
+                        OverlayTexture.NO_OVERLAY,
+                        0);
+                poseStack.popPose();
+            }
+        }
     }
 }

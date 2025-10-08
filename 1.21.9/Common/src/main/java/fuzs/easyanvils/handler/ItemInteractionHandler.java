@@ -31,17 +31,22 @@ public class ItemInteractionHandler {
         if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
             return EventResultHolder.pass();
         }
+
         ItemStack itemInHand = player.getItemInHand(hand);
         if (player.isShiftKeyDown() && itemInHand.is(Items.NAME_TAG)) {
             MessageSender.broadcast(PlayerSet.ofEntity(player),
                     new ClientboundOpenNameTagEditorMessage(hand, itemInHand.getHoverName()));
-            return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
+            return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide()));
         }
+
         return EventResultHolder.pass();
     }
 
     public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
-        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilRepairing) return EventResultHolder.pass();
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilRepairing) {
+            return EventResultHolder.pass();
+        }
+
         ItemStack stack = player.getItemInHand(hand);
         if (stack.is(Items.IRON_BLOCK)) {
             BlockPos pos = hitResult.getBlockPos();
@@ -50,9 +55,11 @@ public class ItemInteractionHandler {
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
                 }
-                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide));
+
+                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide()));
             }
         }
+
         return EventResultHolder.pass();
     }
 
@@ -64,8 +71,10 @@ public class ItemInteractionHandler {
                 MessageSender.broadcast(PlayerSet.nearPosition(blockPos, serverLevel),
                         new ClientboundAnvilRepairMessage(blockPos, repairedState));
             }
+
             return true;
         }
+
         return false;
     }
 
