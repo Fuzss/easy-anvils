@@ -215,30 +215,30 @@ public class FormattableEditBox extends EditBox {
 
     @Override
     protected void scrollTo(int position) {
-        int i = this.value.length();
-        if (this.displayPos > i) {
-            this.displayPos = i;
-        }
+        if (this.font != null) {
+            this.displayPos = Math.min(this.displayPos, this.value.length());
+            int innerWidth = this.getInnerWidth();
+            String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
+                    this.value,
+                    this.displayPos,
+                    innerWidth,
+                    Style.EMPTY);
+            int k = string.length() + this.displayPos;
+            if (position == this.displayPos) {
+                this.displayPos -= FormattedStringDecomposer.plainTailByWidth(this.font,
+                        this.value,
+                        innerWidth,
+                        Style.EMPTY).length();
+            }
 
-        int j = this.getInnerWidth();
-        String string = FormattedStringDecomposer.plainHeadByWidth(this.font,
-                this.value,
-                this.displayPos,
-                j,
-                Style.EMPTY);
-        int k = string.length() + this.displayPos;
-        if (position == this.displayPos) {
-            this.displayPos -= FormattedStringDecomposer.plainTailByWidth(this.font, this.value, j, Style.EMPTY)
-                    .length();
-        }
+            if (position > k) {
+                this.displayPos += position - k;
+            } else if (position <= this.displayPos) {
+                this.displayPos -= this.displayPos - position;
+            }
 
-        if (position > k) {
-            this.displayPos += position - k;
-        } else if (position <= this.displayPos) {
-            this.displayPos -= this.displayPos - position;
+            this.displayPos = Mth.clamp(this.displayPos, 0, this.value.length());
         }
-
-        this.displayPos = Mth.clamp(this.displayPos, 0, i);
     }
 
     @Override
