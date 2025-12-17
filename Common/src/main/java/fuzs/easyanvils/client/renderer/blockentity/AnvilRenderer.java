@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -35,7 +35,7 @@ public class AnvilRenderer implements BlockEntityRenderer<AnvilBlockEntity, Anvi
     }
 
     @Override
-    public void extractRenderState(AnvilBlockEntity blockEntity, AnvilRenderState renderState, float partialTick, Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+    public void extractRenderState(AnvilBlockEntity blockEntity, AnvilRenderState renderState, float partialTick, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity,
                 renderState,
                 partialTick,

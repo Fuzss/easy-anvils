@@ -9,7 +9,6 @@ import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.puzzleslib.api.init.v3.registry.ResourceKeyHelper;
 import fuzs.puzzleslib.api.network.v4.MessageSender;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -17,15 +16,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class NameTagEditScreen extends Screen {
-    private static final ResourceLocation EDIT_NAME_TAG_LOCATION = EasyAnvils.id("textures/gui/edit_name_tag.png");
+    private static final Identifier EDIT_NAME_TAG_LOCATION = EasyAnvils.id("textures/gui/edit_name_tag.png");
     static final Component SNEAK_COMPONENT = Component.keybind("key.sneak").withStyle(ChatFormatting.LIGHT_PURPLE);
     static final Component USE_COMPONENT = Component.keybind("key.use").withStyle(ChatFormatting.LIGHT_PURPLE);
     public static final Component DESCRIPTION_COMPONENT = Component.translatable(
@@ -48,10 +47,10 @@ public class NameTagEditScreen extends Screen {
         this.itemName = ComponentDecomposer.toFormattedString(title);
     }
 
-    static String getCustomTranslationKey() {
+    private static String getCustomTranslationKey() {
         ResourceKey<Item> resourceKey = Items.NAME_TAG.builtInRegistryHolder().key();
         return ResourceKeyHelper.getTranslationKey(resourceKey.registryKey(),
-                EasyAnvils.id(resourceKey.location().getPath()));
+                EasyAnvils.id(resourceKey.identifier().getPath()));
     }
 
     @Override
@@ -77,13 +76,15 @@ public class NameTagEditScreen extends Screen {
                     12,
                     Component.translatable("container.repair"));
         }
+
         this.name.setCanLoseFocus(false);
         this.name.setTextColor(-1);
         this.name.setTextColorUneditable(-1);
+        this.name.setInvertHighlightedTextColor(false);
         this.name.setBordered(false);
         this.name.setMaxLength(50);
-        this.name.setResponder((String s) -> {
-            this.itemName = s;
+        this.name.setResponder((String inputValue) -> {
+            this.itemName = inputValue;
         });
         this.name.setValue(this.itemName);
         this.addWidget(this.name);
@@ -94,10 +95,10 @@ public class NameTagEditScreen extends Screen {
     }
 
     @Override
-    public void resize(Minecraft minecraft, int width, int height) {
-        String s = this.name.getValue();
-        this.init(minecraft, width, height);
-        this.name.setValue(s);
+    public void resize(int width, int height) {
+        String inputValue = this.name.getValue();
+        this.init(width, height);
+        this.name.setValue(inputValue);
     }
 
     @Override
@@ -136,4 +137,8 @@ public class NameTagEditScreen extends Screen {
         return false;
     }
 
+    @Override
+    public boolean isInGameUi() {
+        return true;
+    }
 }

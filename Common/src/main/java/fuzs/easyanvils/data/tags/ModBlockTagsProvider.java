@@ -1,4 +1,4 @@
-package fuzs.easyanvils.data;
+package fuzs.easyanvils.data.tags;
 
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;

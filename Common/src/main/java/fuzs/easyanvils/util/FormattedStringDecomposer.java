@@ -10,7 +10,7 @@ import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.Mth;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 

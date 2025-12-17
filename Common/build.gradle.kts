@@ -8,6 +8,6 @@ dependencies {
 
 multiloader {
     mixins {
-        mixin("AnvilBlockMixin", "AnvilMenuMixin", "WorldGenRegionMixin")
+        mixin("AnvilBlockMixin", "AnvilMenuMixin")
     }
 }

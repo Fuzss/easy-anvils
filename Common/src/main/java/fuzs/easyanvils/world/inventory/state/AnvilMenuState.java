@@ -2,7 +2,7 @@ package fuzs.easyanvils.world.inventory.state;
 
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface AnvilMenuState {
 

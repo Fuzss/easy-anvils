@@ -6,32 +6,33 @@ import fuzs.puzzleslib.api.client.gui.v2.tooltip.TooltipBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractStringWidget;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.tooltip.BelowOrAboveWidgetTooltipPositioner;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 
 import java.util.List;
 import java.util.Optional;
 
-public class FormattingGuideWidget extends AbstractStringWidget {
+public class FormattingGuideWidget extends AbstractWidget {
     private static final Component QUESTION_MARK_COMPONENT = Component.literal("?");
 
+    private final Font font;
+    private Component inactiveMessage = CommonComponents.EMPTY;
+
     public FormattingGuideWidget(int x, int y, Font font) {
-        super(x - font.width(QUESTION_MARK_COMPONENT) * 2,
-                y,
-                font.width(QUESTION_MARK_COMPONENT) * 2,
-                font.lineHeight,
-                QUESTION_MARK_COMPONENT,
-                font);
+        this(x, y, QUESTION_MARK_COMPONENT, font);
+    }
+
+    public FormattingGuideWidget(int x, int y, Component message, Font font) {
+        super(x - font.width(message) * 2, y, font.width(message) * 2, font.lineHeight, message);
+        this.font = font;
         this.active = true;
+        this.setMessage(message);
         TooltipBuilder tooltipBuilder = TooltipBuilder.create()
                 .setTooltipPositionerFactory((ClientTooltipPositioner clientTooltipPositioner, AbstractWidget abstractWidget) -> {
                     if (clientTooltipPositioner instanceof BelowOrAboveWidgetTooltipPositioner) {
@@ -49,22 +50,11 @@ public class FormattingGuideWidget extends AbstractStringWidget {
             if (chatFormatting != ChatFormatting.BLACK && chatFormatting != ChatFormatting.OBFUSCATED) {
                 component.withStyle(chatFormatting);
             }
+
             tooltipBuilder.addLines(Component.literal("§" + chatFormatting.getChar()).append(" - ").append(component));
         }
+
         tooltipBuilder.build(this);
-    }
-
-    @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.setColor(this.isHoveredOrFocused() ? ChatFormatting.YELLOW.getColor() : 4210752);
-        int posX = this.getX() + (this.getWidth() - this.getFont().width(this.getMessage())) / 2;
-        int posY = this.getY() + (this.getHeight() - 9) / 2;
-        guiGraphics.drawString(this.getFont(), this.getMessage(), posX, posY, this.getColor(), false);
-    }
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean doubleClick) {
-        return false;
     }
 
     private static FormattedCharSequence getVisualOrder(FormattedText formattedText) {
@@ -77,5 +67,34 @@ public class FormattingGuideWidget extends AbstractStringWidget {
                         FormattedText.STOP_ITERATION;
             }, Style.EMPTY).isPresent();
         };
+    }
+
+    @Override
+    public Component getMessage() {
+        return this.isHoveredOrFocused() ? this.message : this.inactiveMessage;
+    }
+
+    @Override
+    public void setMessage(Component message) {
+        this.message = ComponentUtils.mergeStyles(message, Style.EMPTY.withColor(ChatFormatting.YELLOW));
+        this.inactiveMessage = ComponentUtils.mergeStyles(message, Style.EMPTY.withColor(0x404040));
+    }
+
+    @Override
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        Component component = this.getMessage();
+        int posX = this.getX() + (this.getWidth() - this.font.width(component)) / 2;
+        int posY = this.getY() + (this.getHeight() - 9) / 2;
+        guiGraphics.drawString(this.font, component, posX, posY, -1, false);
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean doubleClick) {
+        return false;
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        // NO-OP
     }
 }

@@ -5,23 +5,24 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import fuzs.puzzleslib.api.block.v1.BlockConversionHelper;
-import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
 import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
-import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
-import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -32,26 +33,23 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.*;
 
 public class BlockConversionHandler {
-    public static final Component INVALID_BLOCK_COMPONENT = Component.translatable("container.invalidBlock");
     private static final BiMap<Block, Block> BLOCK_CONVERSIONS = HashBiMap.create();
     private static final Map<BlockState, BlockState> BLOCK_STATE_CONVERSIONS_CACHE = new MapMaker().weakKeys()
             .weakValues()
             .makeMap();
 
     public static RegistryEntryAddedCallback<Block> onRegistryEntryAdded(Predicate<Block> filter, Function<BlockBehaviour.Properties, Block> factory, String modId) {
-        return (Registry<Block> registry, ResourceLocation id, Block block, BiConsumer<ResourceLocation, Supplier<Block>> registrar) -> {
+        return (Registry<Block> registry, Identifier id, Block block, BiConsumer<Identifier, Supplier<Block>> registrar) -> {
             if (filter.test(block)) {
-                ResourceLocation resourceLocation = ResourceLocationHelper.fromNamespaceAndPath(modId,
-                        id.getNamespace() + "/" + id.getPath());
-                registrar.accept(resourceLocation, () -> {
-                    BlockBehaviour.Properties properties = BlockConversionHelper.copyBlockProperties(block,
-                            resourceLocation);
+                Identifier identifier = Identifier.fromNamespaceAndPath(modId, id.getNamespace() + "/" + id.getPath());
+                registrar.accept(identifier, () -> {
+                    BlockBehaviour.Properties properties = BlockConversionHelper.copyBlockProperties(block, identifier);
                     Block newBlock = factory.apply(properties);
                     BLOCK_CONVERSIONS.put(block, newBlock);
                     return newBlock;
@@ -72,15 +70,30 @@ public class BlockConversionHandler {
         };
     }
 
-    public static PlayerInteractEvents.UseBlock onUseBlock(TagKey<Block> unalteredBlocks, BooleanSupplier disableVanillaBlock) {
+    public static PlayerInteractEvents.UseBlock onUseBlock(TagKey<Block> unalteredBlocks, @Nullable SoundEvent soundEvent, BooleanSupplier convertVanillaBlock) {
         return (Player player, Level level, InteractionHand interactionHand, BlockHitResult hitResult) -> {
-            if (!disableVanillaBlock.getAsBoolean()) return EventResultHolder.pass();
-            BlockState blockState = level.getBlockState(hitResult.getBlockPos());
-            if (BLOCK_CONVERSIONS.containsKey(blockState.getBlock()) && !blockState.is(unalteredBlocks)) {
-                player.displayClientMessage(Component.empty()
-                        .append(INVALID_BLOCK_COMPONENT)
-                        .withStyle(ChatFormatting.RED), true);
-                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide()));
+            if (!convertVanillaBlock.getAsBoolean()) {
+                return EventResultHolder.pass();
+            }
+
+            BlockPos blockPos = hitResult.getBlockPos();
+            BlockState blockState = level.getBlockState(blockPos);
+            Block block = BLOCK_CONVERSIONS.get(blockState.getBlock());
+            if (block != null && !blockState.is(unalteredBlocks)) {
+                if (level instanceof ServerLevel) {
+                    level.destroyBlock(blockPos, false, player);
+                    if (soundEvent != null) {
+                        level.playSound(null,
+                                blockPos,
+                                soundEvent,
+                                SoundSource.BLOCKS,
+                                1.0F,
+                                level.random.nextFloat() * 0.1F + 0.9F);
+                    }
+                }
+
+                level.setBlock(blockPos, block.withPropertiesOf(blockState), Block.UPDATE_ALL);
+                return EventResultHolder.interrupt(InteractionResult.SUCCESS);
             } else {
                 return EventResultHolder.pass();
             }

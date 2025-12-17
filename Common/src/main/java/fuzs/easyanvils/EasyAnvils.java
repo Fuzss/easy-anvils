@@ -1,7 +1,6 @@
 package fuzs.easyanvils;
 
 import fuzs.easyanvils.config.ClientConfig;
-import fuzs.easyanvils.config.CommonConfig;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.handler.BlockConversionHandler;
 import fuzs.easyanvils.handler.ItemInteractionHandler;
@@ -15,7 +14,6 @@ import fuzs.easyanvils.world.level.block.AnvilWithInventoryBlock;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.core.v1.context.PayloadTypesContext;
-import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventPhase;
@@ -27,7 +25,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -48,7 +47,6 @@ public class EasyAnvils implements ModConstructor {
 
     public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID)
             .client(ClientConfig.class)
-            .common(CommonConfig.class)
             .server(ServerConfig.class);
     public static final Predicate<Block> BLOCK_PREDICATE = (Block block) -> {
         return block instanceof AnvilBlock && !(block instanceof AnvilWithInventoryBlock);
@@ -67,7 +65,8 @@ public class EasyAnvils implements ModConstructor {
                         MOD_ID));
         AddBlockEntityTypeBlocksCallback.EVENT.register(BlockConversionHandler.onAddBlockEntityTypeBlocks(ModRegistry.ANVIL_BLOCK_ENTITY_TYPE));
         PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
-                () -> CONFIG.get(CommonConfig.class).disableVanillaAnvil));
+                SoundEvents.ANVIL_USE,
+                () -> CONFIG.get(ServerConfig.class).convertVanillaAnvilWhenInteracting));
         TagsUpdatedCallback.EVENT.register(EventPhase.FIRST,
                 BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, BLOCK_PREDICATE));
         PlayerInteractEvents.USE_ITEM.register(ItemInteractionHandler::onUseItem);
@@ -113,7 +112,7 @@ public class EasyAnvils implements ModConstructor {
         context.playToServer(ServerboundNameTagUpdateMessage.class, ServerboundNameTagUpdateMessage.STREAM_CODEC);
     }
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocationHelper.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 }

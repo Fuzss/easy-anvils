@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
-import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -13,11 +12,12 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.Util;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -122,9 +122,9 @@ public class FormattableEditBox extends EditBox {
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (this.isVisible()) {
             if (this.isBordered()) {
-                ResourceLocation resourceLocation = SPRITES.get(this.isActive(), this.isFocused());
+                Identifier identifier = SPRITES.get(this.isActive(), this.isFocused());
                 guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
-                        resourceLocation,
+                        identifier,
                         this.getX(),
                         this.getY(),
                         this.getWidth(),
@@ -181,7 +181,8 @@ public class FormattableEditBox extends EditBox {
                 guiGraphics.textHighlight(Math.min(m, this.getX() + this.width),
                         this.textY - 1,
                         Math.min(n - 1, this.getX() + this.width),
-                        this.textY + 1 + 9);
+                        this.textY + 1 + 9,
+                        this.invertHighlightedTextColor);
             }
 
             if (bl2) {

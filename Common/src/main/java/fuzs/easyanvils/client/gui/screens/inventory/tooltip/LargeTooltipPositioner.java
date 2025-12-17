@@ -3,7 +3,7 @@ package fuzs.easyanvils.client.gui.screens.inventory.tooltip;
 import net.minecraft.client.gui.navigation.ScreenAxis;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 

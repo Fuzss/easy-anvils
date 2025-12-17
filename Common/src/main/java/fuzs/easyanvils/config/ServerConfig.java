@@ -10,23 +10,38 @@ public class ServerConfig implements ConfigCore {
     public final CostsConfig costs = new CostsConfig();
     @Config
     public final MiscellaneousConfig miscellaneous = new MiscellaneousConfig();
+    @Config(description = "Leftover vanilla anvils will transform when trying to use them.")
+    public boolean convertVanillaAnvilWhenInteracting = true;
 
     public static class PriorWorkPenaltyConfig implements ConfigCore {
-        @Config(description = {"Controls how working an item in the anvil multiple times affects the cost of future operations.", "LIMITED: Penalty doubles every time an item is worked, but every increase cannot exceed a given limit.", "VANILLA: Penalty doubles every time an item is worked.", "NONE: Penalty is disabled by staying at 0 and does not increase."})
+        @Config(description = {
+                "Controls how working an item in the anvil multiple times affects the cost of future operations.",
+                "LIMITED: Penalty doubles every time an item is worked, but every increase cannot exceed a given limit.",
+                "VANILLA: Penalty doubles every time an item is worked.",
+                "NONE: Penalty is disabled by staying at 0 and does not increase."
+        })
         public PriorWorkPenalty priorWorkPenalty = PriorWorkPenalty.LIMITED;
         @Config(description = "Value to use when \"prior_work_penalty\" is set to \"LIMITED\". Every subsequent operation will increase at most by this value in levels.")
         @Config.IntRange(min = 1)
         public int maximumPriorWorkPenaltyIncrease = 4;
-        @Config(description = {"FIXED: When renaming / repairing, ignore any prior work penalty on the item. Makes prior work penalty only relevant when new enchantments are added.", "LIMITED: When renaming / repairing cost exceeds max anvil repair cost, limit cost just below max cost.", "VANILLA: Renaming / repairing increase with prior work penalty and will no longer be possible when max cost is exceeded."})
+        @Config(description = {
+                "FIXED: When renaming / repairing, ignore any prior work penalty on the item. Makes prior work penalty only relevant when new enchantments are added.",
+                "LIMITED: When renaming / repairing cost exceeds max anvil repair cost, limit cost just below max cost.",
+                "VANILLA: Renaming / repairing increase with prior work penalty and will no longer be possible when max cost is exceeded."
+        })
         public RenameAndRepairCost renameAndRepairCosts = RenameAndRepairCost.FIXED;
         @Config(description = "Prevents the prior work penalty from increasing when the item has only been renamed or repaired.")
         public boolean penaltyFreeRenamesAndRepairs = true;
         @Config(description = "Prevents the prior work penalty from increasing when combining two enchanted books.")
         public boolean penaltyFreeEnchantsForBooks = true;
     }
-    
+
     public static class CostsConfig implements ConfigCore {
-        @Config(description = {"Max cost of enchantment level allowed to be spent in an anvil. Every operation exceeding the limit will show as 'Too Expensive!' and will be disallowed.", "If set to '-1' the limit is disabled.", "Set to '40' enchantment levels in vanilla."})
+        @Config(description = {
+                "Max cost of enchantment level allowed to be spent in an anvil. Every operation exceeding the limit will show as 'Too Expensive!' and will be disallowed.",
+                "If set to '-1' the limit is disabled.",
+                "Set to '40' enchantment levels in vanilla."
+        })
         @Config.IntRange(min = -1)
         public int tooExpensiveLimit = -1;
         @Config(description = "Renaming any item in an anvil no longer costs any enchantment levels at all. Can be restricted to only name tags.")

@@ -6,6 +6,7 @@ accessible  field   net/minecraft/client/gui/components/EditBox maxLength   I
 accessible  field   net/minecraft/client/gui/components/EditBox bordered    Z
 accessible  field   net/minecraft/client/gui/components/EditBox isEditable  Z
 accessible  field   net/minecraft/client/gui/components/EditBox textShadow  Z
+accessible  field   net/minecraft/client/gui/components/EditBox invertHighlightedTextColor  Z
 accessible  field   net/minecraft/client/gui/components/EditBox displayPos  I
 accessible  field   net/minecraft/client/gui/components/EditBox cursorPos   I
 accessible  field   net/minecraft/client/gui/components/EditBox highlightPos    I

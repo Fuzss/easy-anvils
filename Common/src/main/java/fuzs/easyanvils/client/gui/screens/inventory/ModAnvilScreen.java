@@ -49,6 +49,7 @@ public class ModAnvilScreen extends AnvilScreen {
         this.name.setCanLoseFocus(false);
         this.name.setTextColor(-1);
         this.name.setTextColorUneditable(-1);
+        this.name.setInvertHighlightedTextColor(false);
         this.name.setBordered(false);
         this.name.setMaxLength(50);
         this.name.setResponder(this::onNameChanged);
