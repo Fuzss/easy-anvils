@@ -28,6 +28,7 @@ extendable  method  net/minecraft/client/gui/components/EditBox getMaxLength    
 extendable  method  net/minecraft/client/gui/components/EditBox isCentered  ()Z
 extendable  method  net/minecraft/client/gui/components/EditBox updateTextPosition  ()V
 extendable  method  net/minecraft/client/gui/components/EditBox findClickedPositionInText   (Lnet/minecraft/client/input/MouseButtonEvent;)I
+accessible  method  net/minecraft/util/StringDecomposer feedChar    (Lnet/minecraft/network/chat/Style;Lnet/minecraft/util/FormattedCharSink;IC)Z
 accessible  field   net/minecraft/client/gui/screens/inventory/AnvilScreen  name    Lnet/minecraft/client/gui/components/EditBox;
 mutable field   net/minecraft/world/inventory/ItemCombinerMenu  access Lnet/minecraft/world/inventory/ContainerLevelAccess;
 accessible  field   net/minecraft/world/inventory/AnvilMenu itemName    Ljava/lang/String;

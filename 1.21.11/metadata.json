@@ -36,13 +36,13 @@
     ],
     "links": [
         {
-            "name": "github",
-            "slug": "easyanvils"
-        },
-        {
             "name": "curseforge",
             "slug": "easy-anvils",
             "id": "682567"
+        },
+        {
+            "name": "github",
+            "slug": "easyanvils"
         },
         {
             "name": "modrinth",

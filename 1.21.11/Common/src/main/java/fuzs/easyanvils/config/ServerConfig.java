@@ -65,16 +65,12 @@ public class ServerConfig implements ConfigCore {
     public static class MiscellaneousConfig implements ConfigCore {
         @Config(description = "Allow using iron blocks to repair an anvil by one damage stage. Can be automated using dispensers.")
         public boolean anvilRepairing = true;
-        @Config(description = "Edit name tags without cost nor anvil, simply by sneak + right-clicking.")
-        public boolean editNameTagsNoAnvil = true;
-        @Config(description = "Chance the anvil will break into chipped or damaged variant, or break completely after using. Value is set to 0.12 in vanilla.")
+        @Config(description = "Chance the anvil will break into chipped or damaged variant, or break completely after using in survival mode. Value is set to 0.12 in vanilla.")
         @Config.DoubleRange(min = 0.0, max = 1.0)
         public double anvilBreakChance = 0.05;
         @Config(description = "Solely renaming items in an anvil will never cause the anvil to break.")
         public boolean riskFreeAnvilRenaming = true;
-        @Config(description = "The naming field in anvils and the name tag gui will support formatting codes for setting custom text colors and styles.")
+        @Config(description = "The naming field in anvils will support formatting codes for setting custom text colors and styles.")
         public boolean renamingSupportsFormatting = true;
-        @Config(description = "Mobs that have a custom name drop a name tag with that name on death.")
-        public boolean nameTagsDropFromMobs = false;
     }
 }

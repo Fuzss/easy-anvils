@@ -1,18 +1,17 @@
 package fuzs.easyanvils.client.gui.screens.inventory;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.gui.components.FormattableEditBox;
 import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.client.ServerboundRenameItemMessage;
-import fuzs.easyanvils.util.ComponentDecomposer;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
 import fuzs.puzzleslib.api.network.v4.MessageSender;
+import fuzs.puzzleslib.api.util.v1.ComponentHelper;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,21 +30,12 @@ public class ModAnvilScreen extends AnvilScreen {
 
     @Override
     protected void subInit() {
-        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
-            this.name = new FormattableEditBox(this.font,
-                    this.leftPos + 62,
-                    this.topPos + 24,
-                    103,
-                    12,
-                    AnvilBlockEntity.REPAIR_COMPONENT);
-        } else {
-            this.name = new EditBox(this.font,
-                    this.leftPos + 62,
-                    this.topPos + 24,
-                    103,
-                    12,
-                    AnvilBlockEntity.REPAIR_COMPONENT);
-        }
+        this.name = this.createEditBox(this.font,
+                this.leftPos + 62,
+                this.topPos + 24,
+                103,
+                12,
+                AnvilBlockEntity.REPAIR_COMPONENT);
         this.name.setCanLoseFocus(false);
         this.name.setTextColor(-1);
         this.name.setTextColorUneditable(-1);
@@ -57,18 +47,17 @@ public class ModAnvilScreen extends AnvilScreen {
         this.addRenderableWidget(this.name);
         this.name.setEditable(this.menu.getSlot(0).hasItem());
         if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
-            this.addRenderableWidget(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7,
+            this.addRenderableOnly(new FormattingGuideWidget(this.leftPos + this.imageWidth - 7,
                     this.topPos + this.titleLabelY,
                     this.font));
         }
     }
 
-    @Override
-    public boolean mouseDragged(MouseButtonEvent mouseButtonEvent, double dragX, double dragY) {
-        if (this.getFocused() == this.name && this.isDragging() && mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) {
-            return this.getFocused().mouseDragged(mouseButtonEvent, dragX, dragY);
+    protected EditBox createEditBox(Font font, int x, int y, int width, int height, Component message) {
+        if (EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return new FormattableEditBox(font, x, y, width, height, message);
         } else {
-            return super.mouseDragged(mouseButtonEvent, dragX, dragY);
+            return new EditBox(font, x, y, width, height, message);
         }
     }
 
@@ -88,7 +77,7 @@ public class ModAnvilScreen extends AnvilScreen {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // copied from AbstractContainerScreen super
+        // Copied from the AbstractContainerScreen super method.
         guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0XFF404040, false);
         guiGraphics.drawString(this.font,
                 this.playerInventoryTitle,
@@ -128,10 +117,10 @@ public class ModAnvilScreen extends AnvilScreen {
     }
 
     @Override
-    public void slotChanged(AbstractContainerMenu containerToSend, int dataSlotIndex, ItemStack stack) {
+    public void slotChanged(AbstractContainerMenu containerToSend, int dataSlotIndex, ItemStack itemStack) {
         if (dataSlotIndex == 0) {
-            this.name.setValue(stack.isEmpty() ? "" : ComponentDecomposer.toFormattedString(stack.getHoverName()));
-            this.name.setEditable(!stack.isEmpty());
+            this.name.setValue(itemStack.isEmpty() ? "" : ComponentHelper.getAsString(itemStack.getHoverName()));
+            this.name.setEditable(!itemStack.isEmpty());
             this.setFocused(this.name);
         }
     }
