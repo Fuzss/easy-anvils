@@ -5,8 +5,7 @@ import fuzs.easyanvils.config.RenameAndRepairCost;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.services.CommonAbstractions;
-import fuzs.easyanvils.util.ComponentDecomposer;
-import fuzs.easyanvils.util.FormattedStringDecomposer;
+import fuzs.easyanvils.util.FormattedStringUtil;
 import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
@@ -27,6 +26,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -96,7 +96,7 @@ public abstract class ModAnvilMenu extends AnvilMenu {
         }
     }
 
-    private void createAnvilResult(ItemStack primaryItemStack, ItemStack secondaryItemStack, String itemName) {
+    private void createAnvilResult(ItemStack primaryItemStack, ItemStack secondaryItemStack, @Nullable String itemName) {
         this.setCost(1);
         if (primaryItemStack.isEmpty() || !EnchantmentHelper.canStoreEnchantments(primaryItemStack)) {
             this.resultSlots.setItem(0, ItemStack.EMPTY);
@@ -236,7 +236,7 @@ public abstract class ModAnvilMenu extends AnvilMenu {
             }
 
             boolean hasRenamedItem = false;
-            if (ComponentDecomposer.getStringLength(itemName) == 0) {
+            if (itemName == null || FormattedStringUtil.stringLength(itemName) == 0) {
                 if (primaryItemStack.has(DataComponents.CUSTOM_NAME)) {
                     renameOperationCost =
                             EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(primaryItemStack) ?
@@ -244,13 +244,12 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                     hasRenamedItem = true;
                     output.remove(DataComponents.CUSTOM_NAME);
                 }
-            } else if (!Objects.equals(ComponentDecomposer.toFormattedComponent(itemName),
-                    primaryItemStack.getHoverName())) {
+            } else if (!Objects.equals(FormattedStringUtil.getAsComponent(itemName), primaryItemStack.getHoverName())) {
                 renameOperationCost =
                         EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(primaryItemStack) ? 0 :
                                 1;
                 hasRenamedItem = true;
-                output.set(DataComponents.CUSTOM_NAME, ComponentDecomposer.toFormattedComponent(itemName));
+                output.set(DataComponents.CUSTOM_NAME, FormattedStringUtil.getAsComponent(itemName));
             }
 
             int allOperationsCost = enchantOperationCost + repairOperationCost + renameOperationCost;
@@ -337,13 +336,13 @@ public abstract class ModAnvilMenu extends AnvilMenu {
     }
 
     @Override
-    public boolean setItemName(String newName) {
-        newName = FormattedStringDecomposer.filterText(newName);
-        if (ComponentDecomposer.getStringLength(newName) <= 50 && !Objects.equals(newName, this.itemName)) {
-            this.itemName = newName.trim();
+    public boolean setItemName(String itemName) {
+        itemName = FormattedStringUtil.filterText(itemName);
+        if (FormattedStringUtil.stringLength(itemName) <= 50 && !Objects.equals(itemName, this.itemName)) {
+            this.itemName = itemName.trim();
             if (this.getSlot(2).hasItem()) {
                 ItemStack itemStack = this.getSlot(2).getItem();
-                setFormattedItemName(this.itemName, itemStack);
+                setFormattedItemName(itemStack, this.itemName);
             }
 
             this.createResult();
@@ -353,8 +352,8 @@ public abstract class ModAnvilMenu extends AnvilMenu {
         return false;
     }
 
-    public static void setFormattedItemName(String newName, ItemStack itemStack) {
-        Component component = ComponentDecomposer.toFormattedComponent(newName);
+    public static void setFormattedItemName(ItemStack itemStack, String itemName) {
+        Component component = FormattedStringUtil.getAsComponent(itemName);
         if (component.getString().isEmpty()) {
             itemStack.remove(DataComponents.CUSTOM_NAME);
         } else {

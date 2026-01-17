@@ -3,11 +3,9 @@ package fuzs.easyanvils.handler;
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.ClientboundAnvilRepairMessage;
-import fuzs.easyanvils.network.ClientboundOpenNameTagEditorMessage;
 import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
 import fuzs.puzzleslib.api.network.v4.MessageSender;
 import fuzs.puzzleslib.api.network.v4.PlayerSet;
-import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -27,36 +25,22 @@ import org.jspecify.annotations.Nullable;
 
 public class ItemInteractionHandler {
 
-    public static EventResultHolder<InteractionResult> onUseItem(Player player, Level level, InteractionHand hand) {
-        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.editNameTagsNoAnvil) {
-            return EventResultHolder.pass();
-        }
-
-        ItemStack itemInHand = player.getItemInHand(hand);
-        if (player.isShiftKeyDown() && itemInHand.is(Items.NAME_TAG)) {
-            MessageSender.broadcast(PlayerSet.ofEntity(player),
-                    new ClientboundOpenNameTagEditorMessage(hand, itemInHand.getHoverName()));
-            return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide()));
-        }
-
-        return EventResultHolder.pass();
-    }
-
-    public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
+    public static EventResultHolder<InteractionResult> onUseBlock(Player player, Level level, InteractionHand interactionHand, BlockHitResult hitResult) {
         if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.anvilRepairing) {
             return EventResultHolder.pass();
         }
 
-        ItemStack stack = player.getItemInHand(hand);
-        if (stack.is(Items.IRON_BLOCK)) {
-            BlockPos pos = hitResult.getBlockPos();
-            BlockState state = level.getBlockState(pos);
-            if (state.is(BlockTags.ANVIL) && tryRepairAnvil(level, pos, state)) {
+        ItemStack itemInHand = player.getItemInHand(interactionHand);
+        // This is hardcoded to vanilla iron blocks as a dispenser behavior is also registered which cannot use a block tag.
+        if (itemInHand.is(Items.IRON_BLOCK)) {
+            BlockPos blockPos = hitResult.getBlockPos();
+            BlockState blockState = level.getBlockState(blockPos);
+            if (blockState.is(BlockTags.ANVIL) && tryRepairAnvil(level, blockPos, blockState)) {
                 if (!player.getAbilities().instabuild) {
-                    stack.shrink(1);
+                    itemInHand.shrink(1);
                 }
 
-                return EventResultHolder.interrupt(InteractionResultHelper.sidedSuccess(level.isClientSide()));
+                return EventResultHolder.interrupt(InteractionResult.SUCCESS);
             }
         }
 
@@ -73,9 +57,9 @@ public class ItemInteractionHandler {
             }
 
             return true;
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     @Nullable
@@ -100,8 +84,8 @@ public class ItemInteractionHandler {
     public static void onTakeAnvilOutputItemStack(ContainerLevelAccess containerLevelAccess, Player player, boolean onlyRenaming) {
         containerLevelAccess.execute((Level level, BlockPos blockPos) -> {
             BlockState blockstate = level.getBlockState(blockPos);
-            if (!player.getAbilities().instabuild && blockstate.is(BlockTags.ANVIL) &&
-                    player.getRandom().nextFloat() < computeAnvilBreakChance(onlyRenaming)) {
+            if (!player.getAbilities().instabuild && blockstate.is(BlockTags.ANVIL)
+                    && player.getRandom().nextFloat() < computeAnvilBreakChance(onlyRenaming)) {
                 BlockState damagedBlockState = AnvilBlock.damage(blockstate);
                 if (damagedBlockState == null) {
                     level.removeBlock(blockPos, false);
