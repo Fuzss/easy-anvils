@@ -2,13 +2,12 @@ package fuzs.easyanvils.util;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * @see net.minecraft.util.StringDecomposer
+ */
 public class FormattedStringDecomposer {
 
     /**
@@ -72,28 +71,6 @@ public class FormattedStringDecomposer {
                     sink,
                     position,
                     character)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * TODO cleanup
-     *
-     * @see StringDecomposer#iterateBackwards(String, Style, FormattedCharSink)
-     * @see StringDecomposer#iterateFormatted(String, int, Style, Style, FormattedCharSink)
-     */
-    @Deprecated
-    public static boolean iterateFormattedBackwards(String text, Style defaultStyle, FormattedCharSink sink) {
-        List<FormattedCharSequence> list = new ArrayList<>();
-        iterateFormatted(text, defaultStyle, (int position, Style style, int codePoint) -> {
-            list.add(FormattedCharSequence.forward(Character.toString(codePoint), style));
-            return true;
-        });
-        for (int i = list.size() - 1; i >= 0; i--) {
-            if (!list.get(i).accept(sink)) {
                 return false;
             }
         }

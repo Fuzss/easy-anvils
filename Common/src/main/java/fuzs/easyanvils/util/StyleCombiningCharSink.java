@@ -1,10 +1,12 @@
 package fuzs.easyanvils.util;
 
 import fuzs.puzzleslib.api.util.v1.ComponentHelper;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -22,19 +24,29 @@ public class StyleCombiningCharSink implements FormattedCharSink {
     private final Style defaultStyle;
     private int length;
 
-    public StyleCombiningCharSink(String string, Style defaultStyle) {
-        this(FormattedText.of(string), defaultStyle);
-    }
-
-    public StyleCombiningCharSink(FormattedText formattedText, Style defaultStyle) {
-        this(defaultStyle);
-        // Use this to properly convert legacy formatting codes that are part of the string value.
-        StringDecomposer.iterateFormatted(formattedText, defaultStyle, this);
-    }
-
     public StyleCombiningCharSink(Style defaultStyle) {
         this.strings = new ArrayList<>(List.of(Map.entry(new StringBuilder(), Style.EMPTY)));
         this.defaultStyle = defaultStyle;
+    }
+
+    public static StyleCombiningCharSink of(String text, Style defaultStyle) {
+        Objects.requireNonNull(text, "text is null");
+        return of(FormattedText.of(text), defaultStyle);
+    }
+
+    public static StyleCombiningCharSink of(FormattedText formattedText, Style defaultStyle) {
+        Objects.requireNonNull(formattedText, "formatted text is null");
+        StyleCombiningCharSink styleCombiningCharSink = new StyleCombiningCharSink(defaultStyle);
+        // Use this to properly convert legacy formatting codes that are part of the string value.
+        StringDecomposer.iterateFormatted(formattedText, defaultStyle, styleCombiningCharSink);
+        return styleCombiningCharSink;
+    }
+
+    public static StyleCombiningCharSink of(FormattedCharSequence formattedCharSequence, Style defaultStyle) {
+        Objects.requireNonNull(formattedCharSequence, "formatted char sequence is null");
+        StyleCombiningCharSink styleCombiningCharSink = new StyleCombiningCharSink(defaultStyle);
+        formattedCharSequence.accept(styleCombiningCharSink);
+        return of(styleCombiningCharSink.getAsComponent(), defaultStyle);
     }
 
     public int length() {
@@ -60,18 +72,34 @@ public class StyleCombiningCharSink implements FormattedCharSink {
     public Component getAsComponent() {
         MutableComponent mutableComponent = Component.empty().withStyle(this.defaultStyle);
         this.iterateForwards((String string, Style style) -> {
-            Component component = FormattedStringUtil.getAsComponent(string, style);
+            Component component = getAsComponent(string, style);
             mutableComponent.append(component);
         });
         return mutableComponent;
     }
 
+    private static Component getAsComponent(String string, Style style) {
+        return Component.literal(string).withStyle(style);
+    }
+
     public String getAsString() {
         StringBuilder mainStringBuilder = new StringBuilder();
         this.iterateForwards((String string, Style style) -> {
-            mainStringBuilder.append(FormattedStringUtil.getAsString(string, style));
+            mainStringBuilder.append(getAsString(string, style));
         });
-        return mainStringBuilder.toString();
+        return getAsString(mainStringBuilder.toString(), this.defaultStyle);
+    }
+
+    private static String getAsString(String string, Style style) {
+        if (!style.isEmpty()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(ComponentHelper.getAsString(style));
+            stringBuilder.append(string);
+            stringBuilder.append(ChatFormatting.RESET);
+            return stringBuilder.toString();
+        } else {
+            return string;
+        }
     }
 
     public void iterateForwards(FormattedCharSink formattedCharSink) {
@@ -116,7 +144,9 @@ public class StyleCombiningCharSink implements FormattedCharSink {
 
     private void iterate(List<Map.Entry<StringBuilder, Style>> strings, BiPredicate<String, Style> componentConsumer) {
         for (Map.Entry<StringBuilder, Style> entry : strings) {
-            if (!entry.getKey().isEmpty() || !entry.getValue().isEmpty()) {
+            // The default style is "wrapped" around the whole component / string, so we can safely remove it from individual parts.
+            if (!entry.getKey().isEmpty() || !entry.getValue().isEmpty() && !Objects.equals(entry.getValue(),
+                    this.defaultStyle)) {
                 Style style = this.defaultStyle.isEmpty() ? ComponentHelper.sanitizeLegacyFormat(entry.getValue()) :
                         entry.getValue();
                 if (!componentConsumer.test(entry.getKey().toString(), style)) {
