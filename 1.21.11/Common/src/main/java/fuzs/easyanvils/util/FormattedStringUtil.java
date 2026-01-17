@@ -1,17 +1,19 @@
 package fuzs.easyanvils.util;
 
-import fuzs.puzzleslib.api.util.v1.ComponentHelper;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.Objects;
 
+/**
+ * @see net.minecraft.util.StringUtil
+ */
 public class FormattedStringUtil {
     /**
      * A custom style for merging via {@link ComponentUtils#mergeStyles(Component, Style)} that preserves the style set
@@ -62,64 +64,44 @@ public class FormattedStringUtil {
         return stringBuilder.toString();
     }
 
-    public static Component getAsComponent(String string) {
-        Objects.requireNonNull(string, "string is null");
-        return new StyleCombiningCharSink(string, EMPTY).getAsComponent();
+    /**
+     * @see fuzs.puzzleslib.api.util.v1.ComponentHelper#getAsComponent(String)
+     */
+    public static Component getAsComponent(String text) {
+        Objects.requireNonNull(text, "text is null");
+        return StyleCombiningCharSink.of(text, EMPTY).getAsComponent();
     }
 
-    public static int stringLength(String string) {
-        Objects.requireNonNull(string, "string is null");
-        return new StyleCombiningCharSink(string, Style.EMPTY).length();
+    /**
+     * @see String#length()
+     */
+    public static int stringLength(String text) {
+        Objects.requireNonNull(text, "text is null");
+        return StyleCombiningCharSink.of(text, Style.EMPTY).length();
     }
 
-    public static String substring(String string, int startIndex) {
-        return substring(string, startIndex, string.length());
+    /**
+     * @see String#substring(int)
+     */
+    public static String substring(String text, int startIndex) {
+        Objects.requireNonNull(text, "text is null");
+        return substring(text, startIndex, text.length());
     }
 
-    public static String substring(String string, int startIndex, int endIndex) {
-        Objects.requireNonNull(string, "string is null");
-        return new StyleCombiningCharSink(string, Style.EMPTY) {
+    /**
+     * @see String#substring(int, int)
+     */
+    public static String substring(String text, int startIndex, int endIndex) {
+        Objects.requireNonNull(text, "text is null");
+        StyleCombiningCharSink styleCombiningCharSink = new StyleCombiningCharSink(Style.EMPTY) {
             @Override
             public boolean accept(int position, Style style, int codePoint) {
                 return this.length() < startIndex || this.length() < endIndex && super.accept(position,
                         style,
                         codePoint);
             }
-        }.getAsString();
-    }
-
-    public static String deleteLastCharacters(String string, int charCount) {
-        Objects.requireNonNull(string, "string is null");
-        // use this to properly convert legacy formatting codes that are part of the string value
-        StyleCombiningCharSink styleCombiningCharSink = new StyleCombiningCharSink(string, Style.EMPTY);
-        StyleCombiningCharSink styleCombiningCharSink2 = new StyleCombiningCharSink(Style.EMPTY);
-        MutableInt mutableInt = new MutableInt(styleCombiningCharSink.length() - charCount);
-        styleCombiningCharSink.iterateForwards((int position, Style style, int codePoint) -> {
-            mutableInt.subtract(Character.charCount(codePoint));
-            if (mutableInt.intValue() >= 0) {
-                return styleCombiningCharSink2.accept(position, style, codePoint);
-            } else {
-                return false;
-            }
-        });
-        return styleCombiningCharSink2.getAsString();
-    }
-
-    @Deprecated
-    public static Component getAsComponent(String string, Style style) {
-        return Component.literal(string).withStyle(style);
-    }
-
-    @Deprecated
-    public static String getAsString(String string, Style style) {
-        if (!style.isEmpty()) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(ComponentHelper.getAsString(style));
-            stringBuilder.append(string);
-            stringBuilder.append(ChatFormatting.RESET);
-            return stringBuilder.toString();
-        } else {
-            return string;
-        }
+        };
+        StringDecomposer.iterateFormatted(FormattedText.of(text), Style.EMPTY, styleCombiningCharSink);
+        return styleCombiningCharSink.getAsString();
     }
 }

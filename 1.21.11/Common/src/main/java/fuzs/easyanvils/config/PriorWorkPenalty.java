@@ -5,9 +5,9 @@ import fuzs.easyanvils.EasyAnvils;
 import java.util.function.IntUnaryOperator;
 
 public enum PriorWorkPenalty {
-    NONE(itemRepairCost -> 0),
+    NONE((int itemRepairCost) -> 0),
     VANILLA(IntUnaryOperator.identity()),
-    LIMITED(itemRepairCost -> limitedRepairCost(repairCostToRepairs(itemRepairCost)));
+    LIMITED((int itemRepairCost) -> limitedRepairCost(repairCostToRepairs(itemRepairCost)));
 
     public final IntUnaryOperator operator;
 
@@ -15,23 +15,24 @@ public enum PriorWorkPenalty {
         this.operator = operator;
     }
 
-    static int repairCostToRepairs(int itemRepairCost) {
+    private static int repairCostToRepairs(int itemRepairCost) {
         itemRepairCost++;
         int priorRepairs = 0;
         while (itemRepairCost >= 2) {
             itemRepairCost /= 2;
             priorRepairs++;
         }
+
         return priorRepairs;
     }
 
-    static int limitedRepairCost(int priorRepairs) {
+    private static int limitedRepairCost(int priorRepairs) {
+        int maximumPriorWorkPenaltyIncrease = EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.maximumPriorWorkPenaltyIncrease;
         int itemRepairCost = 0;
         for (int i = 0; i < priorRepairs; i++) {
-            itemRepairCost += Math.min(itemRepairCost + 1,
-                    EasyAnvils.CONFIG.get(ServerConfig.class).priorWorkPenalty.maximumPriorWorkPenaltyIncrease
-            );
+            itemRepairCost += Math.min(itemRepairCost + 1, maximumPriorWorkPenaltyIncrease);
         }
+
         return itemRepairCost;
     }
 }
