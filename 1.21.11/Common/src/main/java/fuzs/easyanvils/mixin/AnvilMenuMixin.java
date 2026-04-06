@@ -24,15 +24,12 @@ abstract class AnvilMenuMixin extends ItemCombinerMenu {
         super(menuType, containerId, inventory, access, slotDefinition);
     }
 
-    @WrapWithCondition(
-            method = "onTake", at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/inventory/ContainerLevelAccess;execute(Ljava/util/function/BiConsumer;)V"
-    )
-    )
+    @WrapWithCondition(method = "onTake",
+                       at = @At(value = "INVOKE",
+                                target = "Lnet/minecraft/world/inventory/ContainerLevelAccess;execute(Ljava/util/function/BiConsumer;)V"))
     protected boolean onTake(ContainerLevelAccess containerLevelAccess, BiConsumer<Level, BlockPos> levelPosConsumer, Player player, ItemStack itemStack) {
         // we cannot inject into the lambda as some required menu context is not available there
-        // choose a mixin in favour of NeoForge's AnvilCraftEvent to avoid having to duplicate too much functionality
+        // choose a mixin in favor of NeoForge's AnvilCraftEvent to avoid having to duplicate too much functionality
         ItemInteractionHandler.onTakeAnvilOutputItemStack(containerLevelAccess, player, this.onlyRenaming);
         return false;
     }

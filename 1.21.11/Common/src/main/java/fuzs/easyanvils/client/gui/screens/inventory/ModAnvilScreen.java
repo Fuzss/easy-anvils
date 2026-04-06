@@ -21,6 +21,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class ModAnvilScreen extends AnvilScreen {
+    /**
+     * @see AnvilScreen#TOO_EXPENSIVE_TEXT
+     */
     private static final Component TOO_EXPENSIVE_TEXT = Component.translatable("container.repair.expensive");
 
     public ModAnvilScreen(AnvilMenu anvilMenu, Inventory inventory, Component component) {
@@ -63,7 +66,10 @@ public class ModAnvilScreen extends AnvilScreen {
 
     private void onNameChanged(String input) {
         Slot slot = this.menu.getSlot(0);
-        if (!slot.hasItem()) return;
+        if (!slot.hasItem()) {
+            return;
+        }
+
         if (!slot.getItem().has(DataComponents.CUSTOM_NAME) && input.equals(slot.getItem()
                 .getHoverName()
                 .getString())) {
