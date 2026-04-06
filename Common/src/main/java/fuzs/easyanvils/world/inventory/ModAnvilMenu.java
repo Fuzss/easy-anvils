@@ -97,6 +97,7 @@ public abstract class ModAnvilMenu extends AnvilMenu {
     }
 
     private void createAnvilResult(ItemStack primaryItemStack, ItemStack secondaryItemStack, @Nullable String itemName) {
+        this.onlyRenaming = false;
         this.setCost(1);
         if (primaryItemStack.isEmpty() || !EnchantmentHelper.canStoreEnchantments(primaryItemStack)) {
             this.resultSlots.setItem(0, ItemStack.EMPTY);
