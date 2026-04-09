@@ -24,4 +24,5 @@
   "container.invalidBlock": "No se puede abrir. Rompelo y reemplazalo para usarlo.",
   "easyanvils.item.name_tag.description": "Usa %s + %s para establecer un nuevo nombre sin un yunque.",
   "easyanvils.name_tag.edit": "Editar %s"
+  "tag.block.easyanvils.unaltered_anvils": "Yunques inalterados"
 }
