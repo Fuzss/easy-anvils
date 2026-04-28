@@ -1,6 +1,6 @@
 package fuzs.easyanvils.util;
 
-import fuzs.puzzleslib.api.util.v1.ComponentHelper;
+import fuzs.puzzleslib.common.api.util.v1.ComponentHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;

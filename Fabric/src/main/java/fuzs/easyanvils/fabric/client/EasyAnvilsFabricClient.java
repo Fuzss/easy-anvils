@@ -2,7 +2,7 @@ package fuzs.easyanvils.fabric.client;
 
 import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.client.EasyAnvilsClient;
-import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
+import fuzs.puzzleslib.common.api.client.core.v1.ClientModConstructor;
 import net.fabricmc.api.ClientModInitializer;
 
 public class EasyAnvilsFabricClient implements ClientModInitializer {

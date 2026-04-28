@@ -1,9 +1,10 @@
 {
+    "minecraft": "26.1.2",
     "mod": {
         "id": "easyanvils",
         "group": "fuzs.easyanvils",
         "name": "Easy Anvils",
-        "version": "21.11.0",
+        "version": "26.1.0",
         "authors": [
             "Fuzs"
         ],
@@ -42,7 +43,7 @@
         },
         {
             "name": "github",
-            "slug": "easyanvils"
+            "slug": "easy-anvils"
         },
         {
             "name": "modrinth",

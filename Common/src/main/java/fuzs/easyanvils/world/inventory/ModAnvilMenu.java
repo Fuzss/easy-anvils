@@ -9,7 +9,8 @@ import fuzs.easyanvils.util.FormattedStringUtil;
 import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
 import fuzs.easyanvils.world.inventory.state.BuiltInAnvilMenu;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
-import fuzs.puzzleslib.api.container.v1.QuickMoveRuleSet;
+import fuzs.puzzleslib.common.api.container.v1.QuickMoveRuleSet;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -26,6 +27,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -57,7 +59,6 @@ public abstract class ModAnvilMenu extends AnvilMenu {
 
     private void initializeSlots(AnvilBlockEntity blockEntity) {
         ((SimpleContainer) this.inputSlots).items = blockEntity.getItems();
-        ((SimpleContainer) this.inputSlots).addListener((Container container) -> blockEntity.setChanged());
         this.resultSlots.itemStacks = blockEntity.getResult();
     }
 
@@ -69,6 +70,18 @@ public abstract class ModAnvilMenu extends AnvilMenu {
     @Override
     public boolean stillValid(Player player) {
         return this.container.stillValid(player);
+    }
+
+    @Override
+    public void slotsChanged(Container container) {
+        super.slotsChanged(container);
+        if (container == this.inputSlots) {
+            this.access.execute((Level level, BlockPos blockPos) -> {
+                if (level.getBlockEntity(blockPos) instanceof AnvilBlockEntity blockEntity) {
+                    blockEntity.setChanged();
+                }
+            });
+        }
     }
 
     @Override

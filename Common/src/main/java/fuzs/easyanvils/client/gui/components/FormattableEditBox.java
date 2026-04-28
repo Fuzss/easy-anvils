@@ -6,7 +6,7 @@ import fuzs.easyanvils.client.util.LengthLimitedCharSink;
 import fuzs.easyanvils.util.FormattedStringDecomposer;
 import fuzs.easyanvils.util.FormattedStringUtil;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -57,18 +57,16 @@ public class FormattableEditBox extends EditBox {
 
     @Override
     public void setValue(String text) {
-        if (this.filter.test(text)) {
-            // Custom text length handling so we ignore formatting codes.
-            if (FormattedStringUtil.stringLength(text) > this.maxLength) {
-                this.value = FormattedStringUtil.substring(text, 0, this.maxLength);
-            } else {
-                this.value = text;
-            }
-
-            this.moveCursorToEnd(false);
-            this.setHighlightPos(this.cursorPos);
-            this.onValueChange(text);
+        // Custom text length handling so we ignore formatting codes.
+        if (FormattedStringUtil.stringLength(text) > this.maxLength) {
+            this.value = FormattedStringUtil.substring(text, 0, this.maxLength);
+        } else {
+            this.value = text;
         }
+
+        this.moveCursorToEnd(false);
+        this.setHighlightPos(this.cursorPos);
+        this.onValueChange(text);
     }
 
     @Override
@@ -103,12 +101,10 @@ public class FormattableEditBox extends EditBox {
             }
         }
 
-        if (this.filter.test(newValue)) {
-            this.value = newValue;
-            this.setCursorPosition(start + insertionLength);
-            this.setHighlightPos(this.cursorPos);
-            this.onValueChange(this.value);
-        }
+        this.value = newValue;
+        this.setCursorPosition(start + insertionLength);
+        this.setHighlightPos(this.cursorPos);
+        this.onValueChange(this.value);
     }
 
     @Override
@@ -128,7 +124,7 @@ public class FormattableEditBox extends EditBox {
     }
 
     @Override
-    protected int findClickedPositionInText(MouseButtonEvent mouseButtonEvent) {
+    public int findClickedPositionInText(MouseButtonEvent mouseButtonEvent) {
         int i = Math.min(Mth.floor(mouseButtonEvent.x()) - this.textX, this.getInnerWidth());
         String string = this.value;
         return this.displayPos + FormattedStringSplitter.plainSubstrByWidth(this.font.getSplitter(),
@@ -138,7 +134,7 @@ public class FormattableEditBox extends EditBox {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (this.isVisible()) {
             if (this.isBordered()) {
                 Identifier identifier = SPRITES.get(this.isActive(), this.isFocused());
@@ -163,7 +159,7 @@ public class FormattableEditBox extends EditBox {
             if (!string.isEmpty()) {
                 String string2 = bl ? string.substring(0, j) : string;
                 FormattedCharSequence formattedCharSequence = this.applyFormat(string2, this.displayPos);
-                guiGraphics.drawString(this.font, formattedCharSequence, k, this.textY, i, this.textShadow);
+                guiGraphics.text(this.font, formattedCharSequence, k, this.textY, i, this.textShadow);
                 k += this.font.width(formattedCharSequence) + 1;
             }
 
@@ -178,7 +174,7 @@ public class FormattableEditBox extends EditBox {
             }
 
             if (!string.isEmpty() && bl && j < string.length()) {
-                guiGraphics.drawString(this.font,
+                guiGraphics.text(this.font,
                         this.applyFormat(string.substring(j), this.cursorPos),
                         k,
                         this.textY,
@@ -187,11 +183,11 @@ public class FormattableEditBox extends EditBox {
             }
 
             if (this.hint != null && string.isEmpty() && !this.isFocused()) {
-                guiGraphics.drawString(this.font, this.hint, k, this.textY, i);
+                guiGraphics.text(this.font, this.hint, k, this.textY, i);
             }
 
             if (!bl3 && this.suggestion != null) {
-                guiGraphics.drawString(this.font, this.suggestion, m - 1, this.textY, -8355712, this.textShadow);
+                guiGraphics.text(this.font, this.suggestion, m - 1, this.textY, -8355712, this.textShadow);
             }
 
             if (l != j) {
@@ -207,7 +203,7 @@ public class FormattableEditBox extends EditBox {
                 if (bl3) {
                     guiGraphics.fill(m, this.textY - 1, m + 1, this.textY + 1 + 9, i);
                 } else {
-                    guiGraphics.drawString(this.font, "_", m, this.textY, i, this.textShadow);
+                    guiGraphics.text(this.font, "_", m, this.textY, i, this.textShadow);
                 }
             }
 
@@ -218,7 +214,7 @@ public class FormattableEditBox extends EditBox {
     }
 
     @Override
-    protected void updateTextPosition() {
+    public void updateTextPosition() {
         if (this.font != null) {
             String string = FormattedStringSplitter.plainSubstrByWidth(this.font.getSplitter(),
                     this.value,
@@ -232,7 +228,7 @@ public class FormattableEditBox extends EditBox {
     }
 
     @Override
-    protected void scrollTo(int position) {
+    public void scrollTo(int position) {
         if (this.font != null) {
             this.displayPos = Math.min(this.displayPos, this.value.length());
             int innerWidth = this.getInnerWidth();

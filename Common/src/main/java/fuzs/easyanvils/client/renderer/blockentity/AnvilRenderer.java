@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.AnvilBlock;
@@ -58,7 +58,7 @@ public class AnvilRenderer implements BlockEntityRenderer<AnvilBlockEntity, Anvi
 
         // light is normally always 0 since it checks inside the crafting table block which is solid, but contents are rendered in the block above
         renderState.itemLightCoords = blockEntity.getLevel() != null ?
-                LevelRenderer.getLightColor(blockEntity.getLevel(), blockEntity.getBlockPos().above()) : 0XF000F0;
+                LevelRenderer.getLightCoords(blockEntity.getLevel(), blockEntity.getBlockPos().above()) : 0XF000F0;
         renderState.direction = blockEntity.getBlockState().getValue(AnvilBlock.FACING);
     }
 

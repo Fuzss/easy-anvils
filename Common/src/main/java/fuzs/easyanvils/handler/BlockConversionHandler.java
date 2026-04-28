@@ -4,12 +4,12 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
-import fuzs.puzzleslib.api.block.v1.BlockConversionHelper;
-import fuzs.puzzleslib.api.event.v1.AddBlockEntityTypeBlocksCallback;
-import fuzs.puzzleslib.api.event.v1.RegistryEntryAddedCallback;
-import fuzs.puzzleslib.api.event.v1.core.EventResultHolder;
-import fuzs.puzzleslib.api.event.v1.entity.player.PlayerInteractEvents;
-import fuzs.puzzleslib.api.event.v1.server.TagsUpdatedCallback;
+import fuzs.puzzleslib.common.api.block.v1.BlockConversionHelper;
+import fuzs.puzzleslib.common.api.event.v1.AddBlockEntityTypeBlocksCallback;
+import fuzs.puzzleslib.common.api.event.v1.RegistryEntryAddedCallback;
+import fuzs.puzzleslib.common.api.event.v1.core.EventResultHolder;
+import fuzs.puzzleslib.common.api.event.v1.entity.player.PlayerInteractEvents;
+import fuzs.puzzleslib.common.api.event.v1.server.TagsUpdatedCallback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -88,7 +88,7 @@ public class BlockConversionHandler {
                                 soundEvent,
                                 SoundSource.BLOCKS,
                                 1.0F,
-                                level.random.nextFloat() * 0.1F + 0.9F);
+                                level.getRandom().nextFloat() * 0.1F + 0.9F);
                     }
                 }
 
@@ -175,8 +175,8 @@ public class BlockConversionHandler {
     }
 
     private static <T extends Comparable<T>, V extends T> BlockState copyAllProperties(BlockState oldBlockState, BlockState newBlockState) {
-        for (Map.Entry<Property<?>, Comparable<?>> entry : oldBlockState.getValues().entrySet()) {
-            newBlockState = newBlockState.trySetValue((Property<T>) entry.getKey(), (V) entry.getValue());
+        for (Property.Value<?> value : oldBlockState.getValues().toList()) {
+            newBlockState = newBlockState.trySetValue((Property<T>) value.property(), (V) value.value());
         }
 
         return newBlockState;

@@ -2,8 +2,8 @@ package fuzs.easyanvils.data.client;
 
 import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.init.ModRegistry;
-import fuzs.puzzleslib.api.client.data.v2.AbstractLanguageProvider;
-import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
+import fuzs.puzzleslib.common.api.client.data.v2.AbstractLanguageProvider;
+import fuzs.puzzleslib.common.api.data.v2.core.DataProviderContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;

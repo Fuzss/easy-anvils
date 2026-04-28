@@ -2,8 +2,8 @@ package fuzs.easyanvils.world.level.block.entity;
 
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.services.CommonAbstractions;
-import fuzs.puzzleslib.api.container.v1.ContainerMenuHelper;
-import fuzs.puzzleslib.api.container.v1.ContainerSerializationHelper;
+import fuzs.puzzleslib.common.api.container.v1.ContainerMenuHelper;
+import fuzs.puzzleslib.common.api.container.v1.ContainerSerializationHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

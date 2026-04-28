@@ -6,10 +6,10 @@ import fuzs.easyanvils.client.gui.components.FormattingGuideWidget;
 import fuzs.easyanvils.config.ServerConfig;
 import fuzs.easyanvils.network.client.ServerboundRenameItemMessage;
 import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
-import fuzs.puzzleslib.api.network.v4.MessageSender;
-import fuzs.puzzleslib.api.util.v1.ComponentHelper;
+import fuzs.puzzleslib.common.api.network.v4.MessageSender;
+import fuzs.puzzleslib.common.api.util.v1.ComponentHelper;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import net.minecraft.core.component.DataComponents;
@@ -82,10 +82,10 @@ public class ModAnvilScreen extends AnvilScreen {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         // Copied from the AbstractContainerScreen super method.
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0XFF404040, false);
-        guiGraphics.drawString(this.font,
+        guiGraphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, 0XFF404040, false);
+        guiGraphics.text(this.font,
                 this.playerInventoryTitle,
                 this.inventoryLabelX,
                 this.inventoryLabelY,
@@ -110,7 +110,7 @@ public class ModAnvilScreen extends AnvilScreen {
             if (component != null) {
                 int k = this.imageWidth - 8 - this.font.width(component) - 2;
                 guiGraphics.fill(k - 2, 67, this.imageWidth - 8, 79, 0X4F000000);
-                guiGraphics.drawString(this.font, component, k, 69, textColor);
+                guiGraphics.text(this.font, component, k, 69, textColor);
             }
         }
     }

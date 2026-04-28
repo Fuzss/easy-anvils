@@ -4,7 +4,7 @@ import fuzs.easyanvils.EasyAnvils;
 import fuzs.easyanvils.data.tags.ModBlockTagsProvider;
 import fuzs.easyanvils.init.ModRegistry;
 import fuzs.easyanvils.neoforge.init.NeoForgeModRegistry;
-import fuzs.puzzleslib.api.core.v1.ModConstructor;
+import fuzs.puzzleslib.common.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;
 import fuzs.puzzleslib.neoforge.api.init.v3.capability.NeoForgeCapabilityHelper;
 import net.neoforged.bus.api.SubscribeEvent;
