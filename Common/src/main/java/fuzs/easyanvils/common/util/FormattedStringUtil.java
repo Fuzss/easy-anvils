@@ -65,7 +65,7 @@ public class FormattedStringUtil {
     }
 
     /**
-     * @see fuzs.puzzleslib.api.util.v1.ComponentHelper#getAsComponent(String)
+     * @see fuzs.puzzleslib.common.api.util.v1.ComponentHelper#getAsComponent(String)
      */
     public static Component getAsComponent(String text) {
         Objects.requireNonNull(text, "text is null");

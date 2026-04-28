@@ -6,7 +6,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 
 /**
- * @see StringSplitter.WidthLimitedCharSink
+ * @see net.minecraft.client.StringSplitter.WidthLimitedCharSink
  */
 public class WidthLimitedCharSink implements FormattedCharSink {
     private final StringSplitter stringSplitter;
