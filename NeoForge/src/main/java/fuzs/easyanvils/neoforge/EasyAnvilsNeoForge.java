@@ -1,8 +1,8 @@
 package fuzs.easyanvils.neoforge;
 
-import fuzs.easyanvils.EasyAnvils;
-import fuzs.easyanvils.data.tags.ModBlockTagsProvider;
-import fuzs.easyanvils.init.ModRegistry;
+import fuzs.easyanvils.common.EasyAnvils;
+import fuzs.easyanvils.common.data.tags.ModBlockTagsProvider;
+import fuzs.easyanvils.common.init.ModRegistry;
 import fuzs.easyanvils.neoforge.init.NeoForgeModRegistry;
 import fuzs.puzzleslib.common.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;

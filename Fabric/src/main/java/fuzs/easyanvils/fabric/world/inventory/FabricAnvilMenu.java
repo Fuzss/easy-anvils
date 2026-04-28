@@ -1,7 +1,7 @@
 package fuzs.easyanvils.fabric.world.inventory;
 
-import fuzs.easyanvils.world.inventory.ModAnvilMenu;
-import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
+import fuzs.easyanvils.common.world.inventory.ModAnvilMenu;
+import fuzs.easyanvils.common.world.level.block.entity.AnvilBlockEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 

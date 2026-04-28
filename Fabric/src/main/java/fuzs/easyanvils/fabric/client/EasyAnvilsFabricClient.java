@@ -1,7 +1,7 @@
 package fuzs.easyanvils.fabric.client;
 
-import fuzs.easyanvils.EasyAnvils;
-import fuzs.easyanvils.client.EasyAnvilsClient;
+import fuzs.easyanvils.common.EasyAnvils;
+import fuzs.easyanvils.common.client.EasyAnvilsClient;
 import fuzs.puzzleslib.common.api.client.core.v1.ClientModConstructor;
 import net.fabricmc.api.ClientModInitializer;
 

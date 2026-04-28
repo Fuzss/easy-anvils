@@ -1,11 +1,11 @@
 package fuzs.easyanvils.neoforge.services;
 
 import fuzs.easyanvils.neoforge.world.inventory.NeoForgeAnvilMenu;
-import fuzs.easyanvils.services.CommonAbstractions;
-import fuzs.easyanvils.world.inventory.ModAnvilMenu;
-import fuzs.easyanvils.world.inventory.state.AnvilMenuState;
-import fuzs.easyanvils.world.inventory.state.VanillaAnvilMenu;
-import fuzs.easyanvils.world.level.block.entity.AnvilBlockEntity;
+import fuzs.easyanvils.common.services.CommonAbstractions;
+import fuzs.easyanvils.common.world.inventory.ModAnvilMenu;
+import fuzs.easyanvils.common.world.inventory.state.AnvilMenuState;
+import fuzs.easyanvils.common.world.inventory.state.VanillaAnvilMenu;
+import fuzs.easyanvils.common.world.level.block.entity.AnvilBlockEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 

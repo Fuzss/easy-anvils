@@ -1,8 +1,8 @@
 package fuzs.easyanvils.fabric.init;
 
-import fuzs.easyanvils.EasyAnvils;
+import fuzs.easyanvils.common.EasyAnvils;
 import fuzs.easyanvils.fabric.world.inventory.FabricAnvilMenu;
-import fuzs.easyanvils.world.inventory.ModAnvilMenu;
+import fuzs.easyanvils.common.world.inventory.ModAnvilMenu;
 import fuzs.puzzleslib.common.api.init.v3.registry.RegistryManager;
 import net.minecraft.core.Holder;
 import net.minecraft.world.inventory.MenuType;
