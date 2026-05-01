@@ -65,7 +65,7 @@ public class FormattingGuideWidget extends AbstractWidget {
             }
 
             tooltipBuilder.addLines(Component.translatable(CHAT_FORMATTING_FORMAT_KEY,
-                    chatFormatting.getChar(),
+                    String.valueOf(chatFormatting.getChar()),
                     component));
         }
 
