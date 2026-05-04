@@ -1,5 +1,6 @@
 package fuzs.easyanvils.common.util;
 
+import fuzs.puzzleslib.common.api.util.v1.StyleCombiningCharSink;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;

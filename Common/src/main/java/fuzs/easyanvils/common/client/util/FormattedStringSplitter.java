@@ -2,7 +2,7 @@ package fuzs.easyanvils.common.client.util;
 
 import fuzs.easyanvils.common.util.FormattedStringDecomposer;
 import fuzs.easyanvils.common.util.FormattedStringUtil;
-import fuzs.easyanvils.common.util.StyleCombiningCharSink;
+import fuzs.puzzleslib.common.api.util.v1.StyleCombiningCharSink;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Style;
