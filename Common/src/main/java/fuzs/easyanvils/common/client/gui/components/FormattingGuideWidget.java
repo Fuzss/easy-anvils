@@ -16,14 +16,10 @@ import net.minecraft.network.chat.*;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class FormattingGuideWidget extends AbstractWidget {
     private static final Component QUESTION_MARK_COMPONENT = Component.literal("?");
-    private static final ChatFormatting[] CHAT_FORMATTING_VALUES = ChatFormatting.values();
     /**
      * Black font and obfuscated text cannot be read on the tooltip.
      */
@@ -55,7 +51,7 @@ public class FormattingGuideWidget extends AbstractWidget {
                 .setTooltipLineProcessor((List<? extends FormattedText> tooltipLines) -> {
                     return tooltipLines.stream().map(FormattingGuideWidget::getVisualOrder).toList();
                 });
-        for (ChatFormatting chatFormatting : CHAT_FORMATTING_VALUES) {
+        for (ChatFormatting chatFormatting : ChatFormatting.values()) {
             String translationKey = getChatFormattingKey(chatFormatting);
             Component component;
             if (!PLAIN_CHAT_FORMATTING.contains(chatFormatting)) {
@@ -65,7 +61,7 @@ public class FormattingGuideWidget extends AbstractWidget {
             }
 
             tooltipBuilder.addLines(Component.translatable(CHAT_FORMATTING_FORMAT_KEY,
-                    String.valueOf(chatFormatting.getChar()),
+                    chatFormatting.toString(),
                     component));
         }
 
@@ -85,12 +81,12 @@ public class FormattingGuideWidget extends AbstractWidget {
     }
 
     public static String getChatFormattingKey(ChatFormatting chatFormatting) {
-        return EasyAnvils.id("chat.formatting").toLanguageKey("gui", chatFormatting.getName());
+        return EasyAnvils.id("chat.formatting").toLanguageKey("gui", chatFormatting.name().toLowerCase(Locale.ROOT));
     }
 
     public static String getChatFormattingName(ChatFormatting chatFormatting) {
         StringJoiner stringJoiner = new StringJoiner(" ");
-        String[] strings = chatFormatting.getName().split("_");
+        String[] strings = chatFormatting.name().toLowerCase(Locale.ROOT).split("_");
         for (String string : strings) {
             stringJoiner.add(Character.toUpperCase(string.charAt(0)) + string.substring(1));
         }

@@ -6,7 +6,6 @@ import fuzs.easyanvils.common.EasyAnvils;
 import fuzs.easyanvils.common.client.renderer.blockentity.state.AnvilRenderState;
 import fuzs.easyanvils.common.config.ClientConfig;
 import fuzs.easyanvils.common.world.level.block.entity.AnvilBlockEntity;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -15,6 +14,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.phys.Vec3;
@@ -58,7 +58,7 @@ public class AnvilRenderer implements BlockEntityRenderer<AnvilBlockEntity, Anvi
 
         // light is normally always 0 since it checks inside the crafting table block which is solid, but contents are rendered in the block above
         renderState.itemLightCoords = blockEntity.getLevel() != null ?
-                LevelRenderer.getLightCoords(blockEntity.getLevel(), blockEntity.getBlockPos().above()) : 0XF000F0;
+                LightCoordsUtil.getLightCoords(blockEntity.getLevel(), blockEntity.getBlockPos().above()) : 0XF000F0;
         renderState.direction = blockEntity.getBlockState().getValue(AnvilBlock.FACING);
     }
 

@@ -1,14 +1,14 @@
 {
-    "minecraft": "26.1.2",
+    "minecraft": "26.2",
     "mod": {
         "id": "easyanvils",
         "group": "fuzs.easyanvils",
         "name": "Easy Anvils",
-        "version": "26.1.1",
+        "version": "26.2.0",
         "authors": [
             "Fuzs"
         ],
-        "description": "Be ready for overhauled anvils! Items stay, better name tags, many tweaks!",
+        "description": "Overhauled anvils with stored items, fairer costs, and no more frustrating repair penalties.",
         "license": "MPL-2.0"
     },
     "dependencies": [

@@ -10,7 +10,9 @@ import fuzs.puzzleslib.common.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.common.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.common.api.client.core.v1.context.BlockStateResolverContext;
 import fuzs.puzzleslib.common.api.client.core.v1.context.MenuScreensContext;
+import fuzs.puzzleslib.common.api.client.event.v1.ClientTagsUpdatedCallback;
 import fuzs.puzzleslib.common.api.client.renderer.v1.model.ModelLoadingHelper;
+import fuzs.puzzleslib.common.api.event.v1.core.EventPhase;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -22,6 +24,17 @@ import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 
 public class EasyAnvilsClient implements ClientModConstructor {
+
+    @Override
+    public void onConstructMod() {
+        registerEventHandlers();
+    }
+
+    private static void registerEventHandlers() {
+        ClientTagsUpdatedCallback.EVENT.register(EventPhase.FIRST,
+                BlockConversionHandler.onClientTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
+                        EasyAnvils.BLOCK_PREDICATE)::accept);
+    }
 
     @Override
     public void onRegisterBlockStateResolver(BlockStateResolverContext context) {

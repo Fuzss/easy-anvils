@@ -15,7 +15,7 @@ import fuzs.puzzleslib.common.api.event.v1.AddBlockEntityTypeBlocksCallback;
 import fuzs.puzzleslib.common.api.event.v1.RegistryEntryAddedCallback;
 import fuzs.puzzleslib.common.api.event.v1.core.EventPhase;
 import fuzs.puzzleslib.common.api.event.v1.entity.player.PlayerInteractEvents;
-import fuzs.puzzleslib.common.api.event.v1.server.TagsUpdatedCallback;
+import fuzs.puzzleslib.common.api.event.v1.server.ServerResourcesLoadCallback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.BlockSource;
@@ -63,8 +63,9 @@ public class EasyAnvils implements ModConstructor {
         PlayerInteractEvents.USE_BLOCK.register(BlockConversionHandler.onUseBlock(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
                 SoundEvents.ANVIL_USE,
                 () -> CONFIG.get(ServerConfig.class).convertVanillaAnvilWhenInteracting));
-        TagsUpdatedCallback.EVENT.register(EventPhase.FIRST,
-                BlockConversionHandler.onTagsUpdated(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG, BLOCK_PREDICATE));
+        ServerResourcesLoadCallback.EVENT.register(EventPhase.FIRST,
+                BlockConversionHandler.onServerResourcesLoad(ModRegistry.UNALTERED_ANVILS_BLOCK_TAG,
+                        BLOCK_PREDICATE)::accept);
         PlayerInteractEvents.USE_BLOCK.register(ItemInteractionHandler::onUseBlock);
     }
 

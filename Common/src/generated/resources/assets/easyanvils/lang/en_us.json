@@ -9,7 +9,7 @@
   "gui.easyanvils.chat.formatting.dark_green": "Dark Green",
   "gui.easyanvils.chat.formatting.dark_purple": "Dark Purple",
   "gui.easyanvils.chat.formatting.dark_red": "Dark Red",
-  "gui.easyanvils.chat.formatting.format": "§%s - %s",
+  "gui.easyanvils.chat.formatting.format": "%s - %s",
   "gui.easyanvils.chat.formatting.gold": "Gold",
   "gui.easyanvils.chat.formatting.gray": "Gray",
   "gui.easyanvils.chat.formatting.green": "Green",
