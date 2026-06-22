@@ -31,7 +31,8 @@ public class NameTagTooltipHandler {
                     .withStyle(ChatFormatting.GRAY);
             List<Component> components = Proxy.INSTANCE.splitTooltipLines(component);
             if (tooltipFlag.isAdvanced()) {
-                lines.addAll(lines.size() - (!itemStack.getComponents().isEmpty() ? 2 : 1), components);
+                int offset = itemStack.getComponentsPatch().isEmpty() ? 1 : 2;
+                lines.addAll(lines.size() - offset, components);
             } else {
                 lines.addAll(components);
             }
