@@ -1,5 +1,7 @@
 package fuzs.easyanvils.common.util;
 
+import fuzs.easyanvils.common.EasyAnvils;
+import fuzs.easyanvils.common.config.ServerConfig;
 import fuzs.puzzleslib.common.api.util.v1.StyleCombiningCharSink;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.network.chat.Component;
@@ -31,21 +33,33 @@ public class FormattedStringUtil {
     /**
      * @see CharacterEvent#isAllowedChatCharacter()
      */
-    public static boolean isAllowedChatCharacter(CharacterEvent characterEvent) {
-        return isAllowedChatCharacter(characterEvent.codepoint());
+    public static boolean isAllowedChatCharacter(CharacterEvent event) {
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return event.isAllowedChatCharacter();
+        }
+
+        return isAllowedChatCharacter(event.codepoint());
     }
 
     /**
      * @see net.minecraft.util.StringUtil#isAllowedChatCharacter(int)
      */
-    public static boolean isAllowedChatCharacter(int codePoint) {
-        return StringUtil.isAllowedChatCharacter(codePoint) || codePoint == '§';
+    public static boolean isAllowedChatCharacter(int character) {
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return StringUtil.isAllowedChatCharacter(character);
+        }
+
+        return StringUtil.isAllowedChatCharacter(character) || character == '§';
     }
 
     /**
      * @see net.minecraft.util.StringUtil#filterText(String)
      */
     public static String filterText(String text) {
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return StringUtil.filterText(text);
+        }
+
         return filterText(text, false);
     }
 
@@ -53,6 +67,10 @@ public class FormattedStringUtil {
      * @see net.minecraft.util.StringUtil#filterText(String, boolean)
      */
     public static String filterText(String text, boolean keepLinesBreaks) {
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return StringUtil.filterText(text, keepLinesBreaks);
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
         for (char character : text.toCharArray()) {
             if (isAllowedChatCharacter(character)) {
@@ -70,6 +88,10 @@ public class FormattedStringUtil {
      */
     public static Component getAsComponent(String text) {
         Objects.requireNonNull(text, "text is null");
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return Component.literal(text);
+        }
+
         return StyleCombiningCharSink.of(text, EMPTY).getAsComponent();
     }
 
@@ -78,6 +100,10 @@ public class FormattedStringUtil {
      */
     public static int stringLength(String text) {
         Objects.requireNonNull(text, "text is null");
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return text.length();
+        }
+
         return StyleCombiningCharSink.of(text, Style.EMPTY).length();
     }
 
@@ -86,6 +112,10 @@ public class FormattedStringUtil {
      */
     public static String substring(String text, int startIndex) {
         Objects.requireNonNull(text, "text is null");
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return text.substring(startIndex);
+        }
+
         return substring(text, startIndex, text.length());
     }
 
@@ -94,6 +124,10 @@ public class FormattedStringUtil {
      */
     public static String substring(String text, int startIndex, int endIndex) {
         Objects.requireNonNull(text, "text is null");
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return text.substring(startIndex, endIndex);
+        }
+
         StyleCombiningCharSink styleCombiningCharSink = new StyleCombiningCharSink(Style.EMPTY) {
             @Override
             public boolean accept(int position, Style style, int codePoint) {
