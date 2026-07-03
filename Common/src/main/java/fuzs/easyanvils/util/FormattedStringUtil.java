@@ -1,8 +1,7 @@
 package fuzs.easyanvils.util;
 
-import fuzs.easyanvils.common.EasyAnvils;
-import fuzs.easyanvils.common.config.ServerConfig;
-import fuzs.puzzleslib.api.util.v1.StyleCombiningCharSink;
+import fuzs.easyanvils.EasyAnvils;
+import fuzs.easyanvils.config.ServerConfig;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
