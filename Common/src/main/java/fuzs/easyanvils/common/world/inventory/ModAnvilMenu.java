@@ -15,6 +15,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -368,7 +369,7 @@ public abstract class ModAnvilMenu extends AnvilMenu {
 
     public static void setFormattedItemName(ItemStack itemStack, String itemName) {
         Component component = FormattedStringUtil.getAsComponent(itemName);
-        if (component.getString().isEmpty()) {
+        if (StringUtil.isBlank(component.getString())) {
             itemStack.remove(DataComponents.CUSTOM_NAME);
         } else {
             itemStack.set(DataComponents.CUSTOM_NAME, component);
