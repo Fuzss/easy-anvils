@@ -16,6 +16,11 @@ public class FabricAnvilMenu extends ModAnvilMenu {
     }
 
     @Override
+    protected void createVanillaResult() {
+        super.createResult();
+    }
+
+    @Override
     public void createResult() {
         this.createAnvilResult();
     }

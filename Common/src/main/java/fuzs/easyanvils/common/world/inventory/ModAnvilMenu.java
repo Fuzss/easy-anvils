@@ -93,7 +93,10 @@ public abstract class ModAnvilMenu extends AnvilMenu {
 
     protected final void createAnvilResult() {
         // this is called during <init> when these aren't populated yet
-        if (this.builtInAnvilState == null || this.vanillaAnvilState == null) return;
+        if (this.builtInAnvilState == null || this.vanillaAnvilState == null) {
+            return;
+        }
+
         // to not break custom anvil recipes from other mods, we compare the outcome from the vanilla anvil logic and
         // the actual current anvil logic (with possible alterations from mods via Mixin or the Forge event)
         // if the result is not equal, we do nothing and let the interfering mod take the upper hand
@@ -104,11 +107,13 @@ public abstract class ModAnvilMenu extends AnvilMenu {
         this.builtInAnvilState.fillResultSlots();
         this.vanillaAnvilState.fillResultSlots();
         if (!AnvilMenuState.equals(this.builtInAnvilState, this.vanillaAnvilState)) {
-            super.createResult();
+            this.createVanillaResult();
         } else {
             this.createAnvilResult(primaryItemStack, secondaryItemStack, this.itemName);
         }
     }
+
+    protected abstract void createVanillaResult();
 
     private void createAnvilResult(ItemStack primaryItemStack, ItemStack secondaryItemStack, @Nullable String itemName) {
         this.onlyRenaming = false;

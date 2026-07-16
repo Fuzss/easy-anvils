@@ -16,6 +16,11 @@ public class NeoForgeAnvilMenu extends ModAnvilMenu {
     }
 
     @Override
+    protected void createVanillaResult() {
+        super.createResultInternal();
+    }
+
+    @Override
     protected void createResultInternal() {
         this.createAnvilResult();
     }
