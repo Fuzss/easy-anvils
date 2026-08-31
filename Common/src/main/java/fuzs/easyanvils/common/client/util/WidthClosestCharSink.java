@@ -8,17 +8,17 @@ import net.minecraft.util.FormattedCharSink;
 /**
  * @see StringSplitter.WidthLimitedCharSink
  */
-public class WidthLimitedCharSink implements FormattedCharSink {
+public class WidthClosestCharSink implements FormattedCharSink {
     private final StringSplitter splitter;
     private final int skip;
     private float maxWidth;
     private int position;
 
-    public WidthLimitedCharSink(StringSplitter splitter, float maxWidth) {
+    public WidthClosestCharSink(StringSplitter splitter, float maxWidth) {
         this(splitter, maxWidth, 0);
     }
 
-    public WidthLimitedCharSink(StringSplitter splitter, float maxWidth, int skip) {
+    public WidthClosestCharSink(StringSplitter splitter, float maxWidth, int skip) {
         this.splitter = splitter;
         this.skip = skip;
         this.maxWidth = maxWidth;
@@ -31,9 +31,11 @@ public class WidthLimitedCharSink implements FormattedCharSink {
             return true;
         }
 
-        this.maxWidth -= this.splitter.stringWidth(FormattedCharSequence.forward(Character.toString(codePoint), style));
+        float characterWidth = this.splitter.stringWidth(FormattedCharSequence.forward(Character.toString(codePoint),
+                style));
+        this.maxWidth -= characterWidth;
 
-        if (this.maxWidth >= 0.0F) {
+        if (this.maxWidth >= -characterWidth / 2.0F) {
             this.position = position + Character.charCount(codePoint);
             return true;
         } else {
