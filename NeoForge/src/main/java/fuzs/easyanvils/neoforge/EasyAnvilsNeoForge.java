@@ -5,7 +5,7 @@ import fuzs.easyanvils.common.data.tags.ModBlockTagsProvider;
 import fuzs.easyanvils.common.init.ModRegistry;
 import fuzs.easyanvils.neoforge.init.NeoForgeModRegistry;
 import fuzs.puzzleslib.common.api.core.v1.ModConstructor;
-import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;
+import fuzs.puzzleslib.neoforge.api.data.v3.core.DataProviderBuilder;
 import fuzs.puzzleslib.neoforge.api.init.v3.capability.NeoForgeCapabilityHelper;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -17,7 +17,7 @@ public class EasyAnvilsNeoForge {
     public EasyAnvilsNeoForge() {
         NeoForgeModRegistry.bootstrap();
         ModConstructor.construct(EasyAnvils.MOD_ID, EasyAnvils::new);
-        DataProviderHelper.registerDataProviders(EasyAnvils.MOD_ID, ModBlockTagsProvider::new);
+        DataProviderBuilder.of(EasyAnvils.MOD_ID).addProvider(ModBlockTagsProvider::new);
     }
 
     @SubscribeEvent

@@ -4,7 +4,7 @@ import fuzs.easyanvils.common.EasyAnvils;
 import fuzs.easyanvils.common.client.EasyAnvilsClient;
 import fuzs.easyanvils.common.data.client.ModLanguageProvider;
 import fuzs.puzzleslib.common.api.client.core.v1.ClientModConstructor;
-import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;
+import fuzs.puzzleslib.neoforge.api.data.v3.core.DataProviderBuilder;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
 
@@ -13,6 +13,6 @@ public class EasyAnvilsNeoForgeClient {
 
     public EasyAnvilsNeoForgeClient() {
         ClientModConstructor.construct(EasyAnvils.MOD_ID, EasyAnvilsClient::new);
-        DataProviderHelper.registerDataProviders(EasyAnvils.MOD_ID, ModLanguageProvider::new);
+        DataProviderBuilder.of(EasyAnvils.MOD_ID).addProvider(ModLanguageProvider::new);
     }
 }

@@ -41,6 +41,7 @@ public class FormattingGuideWidget extends AbstractWidget {
         this.active = true;
         this.setMessage(message);
         TooltipBuilder tooltipBuilder = TooltipBuilder.create()
+                .setExtraSpaceAfterFirstLine(false)
                 .setTooltipPositionerFactory((ClientTooltipPositioner clientTooltipPositioner, AbstractWidget abstractWidget) -> {
                     if (clientTooltipPositioner instanceof BelowOrAboveWidgetTooltipPositioner) {
                         return new LargeTooltipPositioner(abstractWidget.getRectangle());

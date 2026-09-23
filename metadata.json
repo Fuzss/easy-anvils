@@ -1,10 +1,10 @@
 {
-    "minecraft": "26.2",
+    "minecraft": "26.3",
     "mod": {
         "id": "easyanvils",
         "group": "fuzs.easyanvils",
         "name": "Easy Anvils",
-        "version": "26.2.3",
+        "version": "26.3.0",
         "authors": [
             "Fuzs"
         ],

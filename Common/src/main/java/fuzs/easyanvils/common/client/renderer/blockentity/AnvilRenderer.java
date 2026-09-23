@@ -69,23 +69,23 @@ public class AnvilRenderer implements BlockEntityRenderer<AnvilBlockEntity, Anvi
             if (!itemStackRenderState.isEmpty()) {
                 poseStack.pushPose();
                 poseStack.translate(0.0F, 1.0375F, 0.0F);
-                poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
+                poseStack.rotateDegrees(Axis.XN, 90.0F);
                 boolean isMirrored = (renderState.direction.getAxisDirection().getStep() == 1 ? 1 : 0) != i % 2;
                 switch (renderState.direction.getAxis()) {
                     case X -> {
                         if (isMirrored) {
                             poseStack.translate(0.25F, -0.5F, 0.0F);
                         } else {
-                            poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+                            poseStack.rotateDegrees(Axis.ZP, 180.0F);
                             poseStack.translate(-0.75F, 0.5F, 0.0F);
                         }
                     }
                     case Z -> {
                         if (isMirrored) {
-                            poseStack.mulPose(Axis.ZN.rotationDegrees(90.0F));
+                            poseStack.rotateDegrees(Axis.ZN, 90.0F);
                             poseStack.translate(0.25F, 0.5F, 0.0F);
                         } else {
-                            poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                            poseStack.rotateDegrees(Axis.ZP, 90.0F);
                             poseStack.translate(-0.75F, -0.5F, 0.0F);
                         }
                     }
