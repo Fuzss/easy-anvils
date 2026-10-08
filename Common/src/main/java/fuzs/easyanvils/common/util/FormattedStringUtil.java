@@ -96,6 +96,18 @@ public class FormattedStringUtil {
     }
 
     /**
+     * @see fuzs.puzzleslib.common.api.util.v1.ComponentHelper#getAsString(FormattedText)
+     */
+    public static String getAsString(Component component) {
+        Objects.requireNonNull(component, "component is null");
+        if (!EasyAnvils.CONFIG.get(ServerConfig.class).miscellaneous.renamingSupportsFormatting) {
+            return component.getString();
+        }
+
+        return StyleCombiningCharSink.of(component, Style.EMPTY).getAsString();
+    }
+
+    /**
      * @see String#length()
      */
     public static int stringLength(String text) {
