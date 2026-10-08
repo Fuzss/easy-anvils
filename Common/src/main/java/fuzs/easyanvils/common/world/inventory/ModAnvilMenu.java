@@ -264,7 +264,7 @@ public abstract class ModAnvilMenu extends AnvilMenu {
                     hasRenamedItem = true;
                     output.remove(DataComponents.CUSTOM_NAME);
                 }
-            } else if (!Objects.equals(FormattedStringUtil.getAsComponent(itemName), primaryItemStack.getHoverName())) {
+            } else if (!Objects.equals(itemName, FormattedStringUtil.getAsString(primaryItemStack.getHoverName()))) {
                 renameOperationCost =
                         EasyAnvils.CONFIG.get(ServerConfig.class).costs.freeRenames.filter.test(primaryItemStack) ? 0 :
                                 1;
